@@ -279,6 +279,13 @@ body {
 
   <!-- ===== 主内容区 ===== -->
   <main class="main-content">
+    <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:16px;gap:10px;">
+      <span id="saveStatus" style="font-size:12px;color:var(--text-tertiary);"></span>
+      <button class="btn btn-sm btn-primary" onclick="manualSave()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        保存
+      </button>
+    </div>
 
     <!-- 视图：首页总览 -->
     <section class="view active" id="view-home">
@@ -480,6 +487,16 @@ async function saveData() {
   } catch (e) {
     console.error('保存失败:', e);
   }
+}
+
+async function manualSave() {
+  await saveData();
+  const status = document.getElementById('saveStatus');
+  status.textContent = '已保存 ✓';
+  status.style.color = 'var(--success)';
+  setTimeout(() => {
+    status.textContent = '';
+  }, 2000);
 }
 
 async function loadData() {
