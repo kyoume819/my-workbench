@@ -1306,6 +1306,28 @@ function manageExerciseLibrary() {
 }
 
 // ===== 饮食计划模块 =====
+// 常见食物营养数据库（每100g）
+const FOOD_DB = {
+  '米饭': { kcal: 116, protein: 2.6, fat: 0.3, carb: 25.9 },
+  '鸡胸肉': { kcal: 165, protein: 31, fat: 3.6, carb: 0 },
+  '鸡蛋': { kcal: 144, protein: 13.3, fat: 8.8, carb: 2.8 },
+  '燕麦': { kcal: 389, protein: 16.9, fat: 6.9, carb: 66.3 },
+  '牛肉': { kcal: 250, protein: 26, fat: 15, carb: 0 },
+  '三文鱼': { kcal: 208, protein: 20, fat: 13, carb: 0 },
+  '西兰花': { kcal: 34, protein: 2.8, fat: 0.4, carb: 6.6 },
+  '鸡胸肉沙拉': { kcal: 120, protein: 15, fat: 5, carb: 5 },
+  '红薯': { kcal: 86, protein: 1.6, fat: 0.1, carb: 20.1 },
+  '牛奶': { kcal: 54, protein: 3, fat: 3.2, carb: 3.4 },
+  '香蕉': { kcal: 93, protein: 1.4, fat: 0.2, carb: 22 },
+  '苹果': { kcal: 52, protein: 0.2, fat: 0.2, carb: 14 },
+  '全麦面包': { kcal: 247, protein: 13, fat: 3.4, carb: 41 },
+  '豆腐': { kcal: 81, protein: 8.1, fat: 3.7, carb: 4.2 },
+  '虾': { kcal: 99, protein: 24, fat: 0.3, carb: 0.2 },
+  '面条': { kcal: 137, protein: 4.8, fat: 0.7, carb: 28 },
+  '猪肉': { kcal: 395, protein: 13.2, fat: 37, carb: 2.4 },
+  '橙汁': { kcal: 45, protein: 0.7, fat: 0.2, carb: 10.4 }
+};
+
 function currentDietDate() {
   return window._dietDate || todayStr();
 }
@@ -1314,13 +1336,59 @@ function renderDiet() {
   const container = document.querySelector('#view-diet .card');
   const diet = dataStore.diet || {};
   const date = currentDietDate();
-  const dayRecord = diet[date] || { breakfast: [], lunch: [], dinner: [] };
+  if (!diet[date]) diet[date] = { breakfast: [], lunch: [], dinner: [], goal: null, bodyStats: null };
+  const dayRecord = diet[date];
+
+  // 计算今日营养汇总
+  let totalKcal = 0, totalProtein = 0, totalFat = 0, totalCarb = 0;
+  ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+    (dayRecord[meal] || []).forEach(item => {
+      totalKcal += item.kcal || 0;
+      totalProtein += item.protein || 0;
+      totalFat += item.fat || 0;
+      totalCarb += item.carb || 0;
+    });
+  });
+
+  // 今日运动消耗（从健身记录估算）
+  const fitnessRecords = (dataStore.fitness && dataStore.fitness.records) || [];
+  const todayFitness = fitnessRecords.filter(r => r.date === date);
+  let exerciseKcal = 0;
+  todayFitness.forEach(r => {
+    if (r.exercises) {
+      r.exercises.forEach(ex => {
+        // 粗略估算：每分钟约6大卡
+        exerciseKcal += (parseInt(ex.duration) || 0) * 6;
+      });
+    }
+  });
+
+  const netKcal = totalKcal - exerciseKcal;
 
   let html = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <button class="btn btn-sm" onclick="changeDietDate(-1)">← 前一天</button>
       <div style="font-weight:600;">${date}</div>
       <button class="btn btn-sm" onclick="changeDietDate(1)">后一天 →</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;">${Math.round(totalKcal)}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">摄入(大卡)</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;">-${exerciseKcal}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">运动消耗</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:${netKcal > 2000 ? 'var(--danger)' : 'var(--success)'};">${Math.round(netKcal)}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">净摄入</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:14px;font-weight:600;">${totalProtein.toFixed(1)}g / ${totalFat.toFixed(1)}g / ${totalCarb.toFixed(1)}g</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">蛋白/脂肪/碳水</div>
+      </div>
     </div>
   `;
 
@@ -1334,40 +1402,125 @@ function renderDiet() {
     const items = dayRecord[meal.key] || [];
     html += `<div style="margin-bottom:16px;">`;
     html += `<div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">${meal.label}
-      <button class="btn btn-sm" style="margin-left:8px;" onclick="addMealItem('${meal.key}')">+ 添加</button>
+      <button class="btn btn-sm" style="margin-left:8px;" onclick="openAddMealModal('${meal.key}')">+ 添加</button>
     </div>`;
     if (items.length === 0) {
       html += `<div style="color:var(--text-tertiary);font-size:13px;">还没记录</div>`;
     } else {
-      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
       items.forEach((item, idx) => {
         html += `
-          <span style="background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:16px;font-size:12.5px;cursor:pointer;" onclick="removeMealItem('${meal.key}', ${idx})" title="点击删除">${escapeHtml(item)}</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <span style="font-size:13.5px;">${escapeHtml(item.name)}</span>
+              <span style="font-size:12px;color:var(--text-tertiary);margin-left:8px;">${item.grams}g · ${Math.round(item.kcal)}大卡</span>
+            </div>
+            <button class="btn-danger-text" onclick="removeMealItem('${meal.key}', ${idx})">×</button>
+          </div>
         `;
       });
-      html += '</div>';
     }
     html += '</div>';
   });
 
+  // 减肥目标和身体数据
+  html += `
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:8px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;">减肥目标 & 身体数据
+        <button class="btn btn-sm" style="margin-left:8px;" onclick="editDietGoal()">设置目标</button>
+      </div>
+      <div id="dietGoalDisplay"></div>
+    </div>
+  `;
+
   container.innerHTML = html;
+  renderDietGoalDisplay();
+}
+
+function renderDietGoalDisplay() {
+  const date = currentDietDate();
+  const dayRecord = (dataStore.diet && dataStore.diet[date]) || {};
+  const display = document.getElementById('dietGoalDisplay');
+  if (!display) return;
+
+  if (!dayRecord.goal) {
+    display.innerHTML = '<div style="color:var(--text-tertiary);font-size:13px;">还没设置目标，点击右上角"设置目标"</div>';
+    return;
+  }
+  const g = dayRecord.goal;
+  display.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:13px;">
+      <div>目标体重：<b>${g.targetWeight}kg</b></div>
+      <div>每日热量目标：<b>${g.dailyKcal}大卡</b></div>
+      <div>当前体重：<b>${g.currentWeight || '-'}kg</b></div>
+    </div>
+  `;
+}
+
+function editDietGoal() {
+  const date = currentDietDate();
+  if (!dataStore.diet[date]) dataStore.diet[date] = { breakfast: [], lunch: [], dinner: [] };
+  const current = dataStore.diet[date].goal || {};
+
+  const tw = prompt('目标体重（kg）：', current.targetWeight || '');
+  if (!tw) return;
+  const ck = prompt('当前体重（kg）：', current.currentWeight || '');
+  const dk = prompt('每日摄入热量目标（大卡）：', current.dailyKcal || '1800');
+
+  dataStore.diet[date].goal = {
+    targetWeight: parseFloat(tw),
+    currentWeight: parseFloat(ck) || 0,
+    dailyKcal: parseFloat(dk) || 1800
+  };
+  saveData();
+  renderDiet();
+}
+
+let currentMealKey = 'breakfast';
+
+function openAddMealModal(mealKey) {
+  currentMealKey = mealKey;
+  // 用prompt简单实现，后续可改模态框
+  const foodNames = Object.keys(FOOD_DB).join('、');
+  const foodName = prompt(`选择食物（输入名称）：\n可选：${foodNames}\n\n自定义食物名也可以：`);
+  if (!foodName || !foodName.trim()) return;
+  const grams = prompt('重量（克）：', '100');
+  if (!grams || isNaN(grams)) return;
+
+  const g = parseFloat(grams);
+  const food = FOOD_DB[foodName.trim()];
+  let kcal, protein, fat, carb;
+  if (food) {
+    kcal = food.kcal * g / 100;
+    protein = food.protein * g / 100;
+    fat = food.fat * g / 100;
+    carb = food.carb * g / 100;
+  } else {
+    // 自定义食物按平均值估算
+    kcal = g * 1.5;
+    protein = g * 0.05;
+    fat = g * 0.03;
+    carb = g * 0.2;
+  }
+
+  const date = currentDietDate();
+  if (!dataStore.diet[date]) dataStore.diet[date] = { breakfast: [], lunch: [], dinner: [] };
+  if (!dataStore.diet[date][mealKey]) dataStore.diet[date][mealKey] = [];
+  dataStore.diet[date][mealKey].push({
+    name: foodName.trim(),
+    grams: g,
+    kcal: kcal,
+    protein: protein,
+    fat: fat,
+    carb: carb
+  });
+  saveData();
+  renderDiet();
 }
 
 function changeDietDate(delta) {
   const d = new Date(currentDietDate());
   d.setDate(d.getDate() + delta);
   window._dietDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  renderDiet();
-}
-
-function addMealItem(mealKey) {
-  const food = prompt('吃了什么：');
-  if (!food || !food.trim()) return;
-  const date = currentDietDate();
-  if (!dataStore.diet[date]) dataStore.diet[date] = { breakfast: [], lunch: [], dinner: [] };
-  if (!dataStore.diet[date][mealKey]) dataStore.diet[date][mealKey] = [];
-  dataStore.diet[date][mealKey].push(food.trim());
-  saveData();
   renderDiet();
 }
 
