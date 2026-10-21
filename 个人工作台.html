@@ -9,41 +9,41 @@
 /* ===== 设计系统：CSS变量 ===== */
 :root {
   --bg: #E8EEF7;
-  --surface: rgba(255, 255, 255, 0.65);
-  --surface-hover: rgba(255, 255, 255, 0.8);
-  --border: rgba(255, 255, 255, 0.5);
-  --border-light: rgba(255, 255, 255, 0.3);
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-tertiary: #94A3B8;
-  --accent: #2563EB;
-  --accent-light: rgba(37, 99, 235, 0.12);
-  --accent-hover: #1D4ED8;
-  --accent-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  --danger: #DC2626;
-  --danger-light: rgba(220, 38, 38, 0.1);
-  --warning: #D97706;
-  --warning-light: rgba(217, 119, 6, 0.1);
-  --success: #059669;
-  --success-light: rgba(5, 150, 105, 0.1);
-  --high: #DC2626;
-  --medium: #D97706;
-  --low: #2563EB;
-  --radius: 14px;
-  --radius-sm: 10px;
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 8px 32px rgba(15, 23, 42, 0.1);
-  --shadow-lg: 0 16px 48px rgba(15, 23, 42, 0.14);
-  --sidebar-w: 230px;
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --blur: blur(24px) saturate(180%);
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-hover: rgba(255, 255, 255, 0.85);
+  --border: rgba(255, 255, 255, 0.6);
+  --border-light: rgba(255, 255, 255, 0.4);
+  --text-primary: #000000;
+  --text-secondary: #3C3C43;
+  --text-tertiary: #8E8E93;
+  --accent: #007AFF;
+  --accent-light: rgba(0, 122, 255, 0.12);
+  --accent-hover: #0056CC;
+  --accent-gradient: linear-gradient(135deg, #0A84FF 0%, #007AFF 100%);
+  --danger: #FF3B30;
+  --danger-light: rgba(255, 59, 48, 0.12);
+  --warning: #FF9500;
+  --warning-light: rgba(255, 149, 0, 0.12);
+  --success: #34C759;
+  --success-light: rgba(52, 199, 89, 0.12);
+  --high: #FF3B30;
+  --medium: #FF9500;
+  --low: #007AFF;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
+  --sidebar-w: 240px;
+  --transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  --blur: blur(30px) saturate(180%);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-  background: linear-gradient(135deg, #E0E7FF 0%, #F0F9FF 50%, #FEF3C7 100%);
+  background: linear-gradient(160deg, #DBEAFE 0%, #E0F2FE 40%, #FEF3C7 100%);
   background-attachment: fixed;
   color: var(--text-primary);
   font-size: 14px;
@@ -85,24 +85,24 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 16px;
-  margin: 2px 8px;
+  padding: 10px 16px;
+  margin: 2px 10px;
   cursor: pointer;
   color: var(--text-secondary);
-  font-size: 13.5px;
+  font-size: 14px;
   transition: var(--transition);
   border-radius: var(--radius-sm);
   user-select: none;
 }
 
 .nav-item:hover {
-  background: var(--surface-hover);
+  background: rgba(255, 255, 255, 0.5);
   color: var(--text-primary);
 }
 
 .nav-item.active {
   color: var(--accent);
-  background: var(--accent-light);
+  background: rgba(0, 122, 255, 0.1);
   font-weight: 600;
 }
 
