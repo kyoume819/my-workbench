@@ -411,9 +411,12 @@ body {
 <!-- ===== 首次数据文件夹选择引导 ===== -->
 <div class="setup-overlay" id="setupOverlay" style="display:none;">
   <div class="setup-box">
-    <h2>欢迎使用我的工作台</h2>
-    <p>首次使用需要选择一个文件夹来保存你的数据。<br>建议在桌面新建一个空文件夹（如"我的APP数据"），<br>选择它后所有数据都会自动保存在那里。</p>
-    <button class="btn btn-primary" onclick="selectDataFolder()">选择数据文件夹</button>
+    <h2 id="setupTitle">欢迎使用我的工作台</h2>
+    <p id="setupDesc">首次使用需要选择一个文件夹来保存你的数据。<br>建议在桌面新建一个空文件夹（如"我的APP数据"），<br>选择它后所有数据都会自动保存在那里。</p>
+    <button class="btn btn-primary" id="setupBtn" onclick="selectDataFolder()">选择数据文件夹</button>
+    <div style="margin-top:12px;">
+      <button class="btn" id="setupAltBtn" style="display:none;" onclick="showFirstSetup()">换一个文件夹</button>
+    </div>
   </div>
 </div>
 
@@ -1708,6 +1711,8 @@ async function clearHandleFromDB() {
 }
 
 // ===== 初始化 =====
+let savedHandleCache = null;
+
 async function init() {
   if (!window.showDirectoryPicker) {
     alert('你的浏览器不支持本地文件存储功能，请使用 Chrome 或 Edge 浏览器打开。');
@@ -1718,20 +1723,62 @@ async function init() {
   try {
     const savedHandle = await loadHandleFromDB();
     if (savedHandle) {
-      dirHandle = savedHandle;
-      dataStore = getDefaultData();
-      await loadData();
-      document.getElementById('setupOverlay').style.display = 'none';
-      isReady = true;
-      renderAll();
+      savedHandleCache = savedHandle;
+      // 显示"继续上次"界面，不直接读取（需要用户手势授权）
+      showResumeSetup();
       return;
     }
   } catch (e) {
     console.warn('读取保存的文件夹失败：', e);
   }
 
-  // 没有保存过，显示引导
+  // 没有保存过，显示首次引导
+  showFirstSetup();
+}
+
+function showFirstSetup() {
+  document.getElementById('setupTitle').textContent = '欢迎使用我的工作台';
+  document.getElementById('setupDesc').innerHTML = '首次使用需要选择一个文件夹来保存你的数据。<br>建议在桌面新建一个空文件夹（如"我的APP数据"），<br>选择它后所有数据都会自动保存在那里。';
+  document.getElementById('setupBtn').textContent = '选择数据文件夹';
+  document.getElementById('setupBtn').onclick = selectDataFolder;
+  document.getElementById('setupAltBtn').style.display = 'none';
   document.getElementById('setupOverlay').style.display = 'flex';
+}
+
+async function showResumeSetup() {
+  document.getElementById('setupTitle').textContent = '继续使用我的工作台';
+  document.getElementById('setupDesc').innerHTML = '检测到你之前使用过的数据文件夹。<br>点击下方按钮即可继续，无需重新选择。';
+  document.getElementById('setupBtn').textContent = '继续使用上次的文件夹';
+  document.getElementById('setupBtn').onclick = resumeFromSavedHandle;
+  document.getElementById('setupAltBtn').style.display = 'inline-block';
+  document.getElementById('setupAltBtn').textContent = '换一个文件夹';
+  document.getElementById('setupAltBtn').onclick = () => {
+    clearHandleFromDB();
+    showFirstSetup();
+  };
+  document.getElementById('setupOverlay').style.display = 'flex';
+}
+
+async function resumeFromSavedHandle() {
+  if (!savedHandleCache) return;
+  dirHandle = savedHandleCache;
+  // 请求权限（用户手势中调用）
+  try {
+    const perm = await dirHandle.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      alert('没有获得文件夹访问权限，请重新选择。');
+      clearHandleFromDB();
+      showFirstSetup();
+      return;
+    }
+  } catch (e) {
+    console.warn('权限请求失败：', e);
+  }
+  dataStore = getDefaultData();
+  await loadData();
+  document.getElementById('setupOverlay').style.display = 'none';
+  isReady = true;
+  renderAll();
 }
 
 init();
