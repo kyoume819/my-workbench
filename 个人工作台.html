@@ -559,12 +559,9 @@ async function selectDataFolder() {
 }
 
 async function saveData() {
-  if (!dirHandle || !dataStore) return;
+  if (!dataStore) return;
   try {
-    const fileHandle = await dirHandle.getFileHandle('data.json', { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(JSON.stringify(dataStore, null, 2));
-    await writable.close();
+    localStorage.setItem('workbench_data', JSON.stringify(dataStore));
   } catch (e) {
     console.error('保存失败:', e);
   }
@@ -581,14 +578,14 @@ async function manualSave() {
 }
 
 async function loadData() {
-  if (!dirHandle) return;
   try {
-    const fileHandle = await dirHandle.getFileHandle('data.json', { create: false });
-    const file = await fileHandle.getFile();
-    const text = await file.text();
-    dataStore = JSON.parse(text);
+    const text = localStorage.getItem('workbench_data');
+    if (text) {
+      dataStore = JSON.parse(text);
+    } else {
+      dataStore = getDefaultData();
+    }
   } catch (e) {
-    // 文件不存在，使用默认数据
     dataStore = getDefaultData();
   }
   // 数据迁移：补全新增字段，兼容旧数据
@@ -598,6 +595,7 @@ async function loadData() {
   if (!dataStore.fitness.equipmentLibrary) dataStore.fitness.equipmentLibrary = defaults.fitness.equipmentLibrary;
   if (!dataStore.fitness.weeklyPlan) dataStore.fitness.weeklyPlan = defaults.fitness.weeklyPlan;
   if (!dataStore.fitness.records) dataStore.fitness.records = [];
+  if (!dataStore.savings) dataStore.savings = { goal: null, records: [] };
 }
 
 // ===== 工具函数 =====
@@ -1963,26 +1961,12 @@ async function clearHandleFromDB() {
 let savedHandleCache = null;
 
 async function init() {
-  if (!window.showDirectoryPicker) {
-    alert('你的浏览器不支持本地文件存储功能，请使用 Chrome 或 Edge 浏览器打开。');
-    return;
-  }
-
-  // 尝试从 IndexedDB 恢复之前保存的文件夹句柄
-  try {
-    const savedHandle = await loadHandleFromDB();
-    if (savedHandle) {
-      savedHandleCache = savedHandle;
-      // 显示"继续上次"界面，不直接读取（需要用户手势授权）
-      showResumeSetup();
-      return;
-    }
-  } catch (e) {
-    console.warn('读取保存的文件夹失败：', e);
-  }
-
-  // 没有保存过，显示首次引导
-  showFirstSetup();
+  // 直接从localStorage加载数据，无需选择文件夹
+  dataStore = getDefaultData();
+  await loadData();
+  document.getElementById('setupOverlay').style.display = 'none';
+  isReady = true;
+  renderAll();
 }
 
 function showFirstSetup() {
