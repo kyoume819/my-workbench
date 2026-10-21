@@ -8,28 +8,34 @@
 <style>
 /* ===== 设计系统：CSS变量 ===== */
 :root {
-  --bg: #F4F6F9;
+  --bg: #F1F5F9;
   --surface: #FFFFFF;
   --surface-hover: #F8FAFC;
   --border: #E2E8F0;
+  --border-light: #F1F5F9;
   --text-primary: #0F172A;
   --text-secondary: #64748B;
   --text-tertiary: #94A3B8;
   --accent: #2563EB;
-  --accent-light: #EFF4FF;
+  --accent-light: #EFF6FF;
   --accent-hover: #1D4ED8;
+  --accent-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
   --danger: #DC2626;
-  --danger-light: #FEE2E2;
+  --danger-light: #FEF2F2;
   --warning: #D97706;
-  --warning-light: #FEF3C7;
+  --warning-light: #FFFBEB;
   --success: #059669;
-  --success-light: #D1FAE5;
+  --success-light: #ECFDF5;
   --high: #DC2626;
   --medium: #D97706;
   --low: #2563EB;
-  --radius: 8px;
+  --radius: 10px;
   --radius-sm: 6px;
-  --sidebar-w: 220px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --sidebar-w: 230px;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -75,21 +81,25 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 20px;
+  padding: 9px 16px;
+  margin: 2px 8px;
   cursor: pointer;
   color: var(--text-secondary);
   font-size: 13.5px;
-  transition: all 0.15s;
-  border-left: 3px solid transparent;
+  transition: var(--transition);
+  border-radius: var(--radius-sm);
   user-select: none;
 }
 
-.nav-item:hover { background: var(--surface-hover); color: var(--text-primary); }
+.nav-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
 .nav-item.active {
   color: var(--accent);
   background: var(--accent-light);
-  border-left-color: var(--accent);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .nav-icon {
@@ -120,17 +130,20 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px;
+  padding: 20px;
   margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
 }
 
 .card-title {
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: var(--text-primary);
 }
 
 .btn {
@@ -144,16 +157,29 @@ body {
   color: var(--text-primary);
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: var(--transition);
   font-family: inherit;
+  font-weight: 500;
 }
-.btn:hover { background: var(--surface-hover); border-color: var(--text-tertiary); }
+
+.btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--text-tertiary);
+  transform: translateY(-1px);
+}
+
 .btn-primary {
-  background: var(--accent);
+  background: var(--accent-gradient);
   color: white;
-  border-color: var(--accent);
+  border: none;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
-.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+.btn-primary:hover {
+  background: var(--accent-gradient);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 .btn-danger-text {
   color: var(--danger);
@@ -190,8 +216,15 @@ body {
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-family: inherit;
+  transition: var(--transition);
+  background: var(--surface);
+  color: var(--text-primary);
 }
-.input:focus { outline: none; border-color: var(--accent); }
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
 
 .empty-state {
   text-align: center;
