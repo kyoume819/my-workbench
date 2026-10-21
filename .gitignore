@@ -1,0 +1,9 @@
+# 截图自检产物
+_shots/
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# 数据文件（用户本地数据不入库）
+data.json
