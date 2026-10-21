@@ -377,6 +377,29 @@ body {
   </div>
 </div>
 
+<!-- ===== 咨询事项编辑模态框 ===== -->
+<div id="consultModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:12px;padding:28px;width:440px;max-width:90vw;">
+    <h3 id="consultModalTitle" style="margin-bottom:18px;font-size:18px;">新建咨询事项</h3>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">客户/事项名称</label>
+      <input type="text" id="consultModalName" class="input" style="width:100%;" placeholder="如：张总 - 数字化转型咨询">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">当前阶段描述</label>
+      <textarea id="consultModalStage" class="input" style="width:100%;min-height:80px;resize:vertical;" placeholder="描述一下当前进展、待办事项..."></textarea>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">下次跟进日期</label>
+      <input type="date" id="consultModalDate" class="input" style="width:100%;">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" onclick="closeConsultModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveConsultModal()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== 全局状态 =====
 let dataStore = null;
@@ -812,18 +835,20 @@ function deleteDevTodo(todoId) {
 }
 
 // ===== 咨询工作模块 =====
+let editingConsultId = null;
+
 function renderConsult() {
   const container = document.querySelector('#view-consult .card');
   const items = dataStore.consultations || [];
 
   let html = `
     <div style="margin-bottom:14px;">
-      <button class="btn btn-primary" onclick="addConsult()">+ 新建咨询事项</button>
+      <button class="btn btn-primary" onclick="openConsultModal()">+ 新建咨询事项</button>
     </div>
   `;
 
   if (items.length === 0) {
-    html += '<div class="empty-state">还没有咨询事项</div>';
+    html += '<div class="empty-state">还没有咨询事项，点击上方按钮新建</div>';
   } else {
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -853,13 +878,13 @@ function renderConsult() {
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
             <div style="flex:1;">
               <div style="font-weight:600;margin-bottom:4px;">${escapeHtml(item.name)}</div>
-              <div style="font-size:13px;color:var(--text-secondary);">${escapeHtml(item.stage || '未设置阶段')}</div>
-              <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">下次跟进：${formatDate(item.followupDate)}</div>
+              <div style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;line-height:1.6;">${escapeHtml(item.stage || '未设置阶段')}</div>
+              <div style="font-size:12px;color:var(--text-tertiary);margin-top:6px;">下次跟进：${item.followupDate}</div>
               ${highlightLabel}
             </div>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <button class="btn btn-sm" onclick="editConsult('${item.id}')">编辑</button>
-              <button class="btn-danger-text" onclick="deleteConsult('${item.id}')">×</button>
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+              <button class="btn btn-sm" onclick="openConsultModal('${item.id}')">编辑</button>
+              <button class="btn-danger-text" onclick="deleteConsult('${item.id}')" title="删除">×</button>
             </div>
           </div>
         </div>
@@ -870,43 +895,65 @@ function renderConsult() {
   container.innerHTML = html;
 }
 
-function addConsult() {
-  const name = prompt('客户/事项名称：');
-  if (!name || !name.trim()) return;
-  const stage = prompt('当前阶段描述：') || '';
-  const followup = prompt('下次跟进日期（YYYY-MM-DD，留空为今天）：');
-  const followupDate = followup && followup.trim() ? followup.trim() : todayStr();
+function openConsultModal(id) {
+  editingConsultId = id || null;
+  const item = id ? dataStore.consultations.find(i => i.id === id) : null;
 
-  dataStore.consultations.push({
-    id: 'consult_' + Date.now(),
-    name: name.trim(),
-    stage: stage,
-    followupDate: followupDate,
-    createdAt: new Date().toISOString()
-  });
-  saveData();
-  renderConsult();
-  renderHome();
+  document.getElementById('consultModalName').value = item ? item.name : '';
+  document.getElementById('consultModalStage').value = item ? (item.stage || '') : '';
+  document.getElementById('consultModalDate').value = item ? item.followupDate : todayStr();
+  document.getElementById('consultModalTitle').textContent = item ? '编辑咨询事项' : '新建咨询事项';
+  document.getElementById('consultModal').style.display = 'flex';
+  document.getElementById('consultModalName').focus();
 }
 
-function editConsult(id) {
-  const item = dataStore.consultations.find(i => i.id === id);
-  if (!item) return;
-  const newStage = prompt('当前阶段描述：', item.stage || '');
-  if (newStage === null) return;
-  item.stage = newStage;
-  const newFollowup = prompt('下次跟进日期（YYYY-MM-DD）：', item.followupDate);
-  if (newFollowup && newFollowup.trim()) item.followupDate = newFollowup.trim();
+function closeConsultModal() {
+  document.getElementById('consultModal').style.display = 'none';
+  editingConsultId = null;
+}
+
+function saveConsultModal() {
+  const name = document.getElementById('consultModalName').value.trim();
+  const stage = document.getElementById('consultModalStage').value.trim();
+  const followupDate = document.getElementById('consultModalDate').value || todayStr();
+
+  if (!name) {
+    alert('请输入客户/事项名称');
+    return;
+  }
+
+  if (editingConsultId) {
+    const item = dataStore.consultations.find(i => i.id === editingConsultId);
+    if (item) {
+      item.name = name;
+      item.stage = stage;
+      item.followupDate = followupDate;
+    }
+  } else {
+    dataStore.consultations.push({
+      id: 'consult_' + Date.now(),
+      name: name,
+      stage: stage,
+      followupDate: followupDate,
+      createdAt: new Date().toISOString()
+    });
+  }
+
   saveData();
   renderConsult();
   renderHome();
+  closeConsultModal();
 }
 
 function deleteConsult(id) {
-  dataStore.consultations = dataStore.consultations.filter(i => i.id !== id);
-  saveData();
-  renderConsult();
-  renderHome();
+  const item = dataStore.consultations.find(i => i.id === id);
+  if (!item) return;
+  if (confirm(`确定删除「${item.name}」吗？`)) {
+    dataStore.consultations = dataStore.consultations.filter(i => i.id !== id);
+    saveData();
+    renderConsult();
+    renderHome();
+  }
 }
 
 // ===== 健身计划模块 =====
