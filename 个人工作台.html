@@ -407,6 +407,39 @@ body {
   </div>
 </div>
 
+<!-- ===== 健身记录模态框 ===== -->
+<div id="fitnessModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:12px;padding:28px;width:500px;max-width:90vw;max-height:90vh;overflow-y:auto;">
+    <h3 style="margin-bottom:18px;font-size:18px;">记录今日训练</h3>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">添加运动项</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <select id="fitnessExerciseSelect" class="input" style="flex:1.5;"></select>
+        <input type="number" id="fitnessDuration" class="input" style="flex:0.8;width:80px;" placeholder="分钟" min="1">
+        <select id="fitnessEquipSelect" class="input" style="flex:1;"></select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input type="text" id="fitnessExerciseCustom" class="input" style="flex:1;" placeholder="或自定义运动名">
+        <input type="text" id="fitnessEquipCustom" class="input" style="flex:1;" placeholder="或自定义器械">
+      </div>
+      <button class="btn btn-sm" onclick="addPendingExercise()">+ 添加到记录</button>
+    </div>
+
+    <div id="pendingExercisesList" style="margin-bottom:14px;padding:10px;background:var(--bg);border-radius:var(--radius-sm);"></div>
+
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">备注（可选）</label>
+      <textarea id="fitnessNote" class="input" style="width:100%;min-height:60px;resize:vertical;" placeholder="训练感受、身体状态..."></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" onclick="closeFitnessModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveFitnessRecord()">保存记录</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== 全局状态 =====
 let dataStore = null;
@@ -422,7 +455,9 @@ function getDefaultData() {
     consultations: [],
     fitness: {
       weeklyPlan: { 'mon': '', 'tue': '', 'wed': '', 'thu': '', 'fri': '', 'sat': '', 'sun': '' },
-      records: []
+      records: [],
+      exerciseLibrary: ['平板卧推', '上斜卧推', '哑铃飞鸟', '引体向上', '高位下拉', '坐姿划船', '杠铃深蹲', '硬拉', '哑铃肩推', '侧平举', '弯举', '臂屈伸', '俯卧撑', '卷腹', '平板支撑', '跑步', '跳绳', '动感单车'],
+      equipmentLibrary: ['杠铃', '哑铃', '跑步机', '跳绳', '瑜伽垫', '弹力带', '龙门架', '卧推凳', '史密斯架']
     },
     diet: {},
     games: [],
@@ -1000,6 +1035,8 @@ function deleteConsult(id) {
 }
 
 // ===== 健身计划模块 =====
+let pendingExercises = [];
+
 function renderFitness() {
   const container = document.querySelector('#view-fitness .card');
   const fitness = dataStore.fitness || { weeklyPlan: {}, records: [] };
@@ -1034,7 +1071,10 @@ function renderFitness() {
   html += '</div>';
 
   html += `<div class="card-title">训练记录
-    <button class="btn btn-sm btn-primary" onclick="addFitnessRecord()">+ 记录今日训练</button>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-sm" onclick="manageExerciseLibrary()">管理运动库</button>
+      <button class="btn btn-sm btn-primary" onclick="openFitnessModal()">+ 记录今日训练</button>
+    </div>
   </div>`;
 
   if (records.length === 0) {
@@ -1042,10 +1082,19 @@ function renderFitness() {
   } else {
     const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date));
     sorted.forEach(rec => {
+      let exercisesHtml = '';
+      if (rec.exercises && rec.exercises.length > 0) {
+        exercisesHtml = '<div style="margin-top:6px;">';
+        rec.exercises.forEach(ex => {
+          exercisesHtml += `<div style="font-size:12.5px;color:var(--text-secondary);padding:2px 0;">• ${escapeHtml(ex.name)} ${ex.duration ? `(${ex.duration}分钟)` : ''} ${ex.equipment ? `[${escapeHtml(ex.equipment)}]` : ''}</div>`;
+        });
+        exercisesHtml += '</div>';
+      }
       html += `
         <div style="padding:10px 0;border-bottom:1px solid var(--border);">
           <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px;">${rec.date}</div>
-          <div style="font-size:13.5px;">${escapeHtml(rec.content)}</div>
+          ${rec.content ? `<div style="font-size:13.5px;">${escapeHtml(rec.content)}</div>` : ''}
+          ${exercisesHtml}
         </div>
       `;
     });
@@ -1069,17 +1118,114 @@ function editWeeklyPlan() {
   renderFitness();
 }
 
-function addFitnessRecord() {
-  const content = prompt('今天练了什么？（动作、组数、重量）：');
-  if (!content || !content.trim()) return;
+function openFitnessModal() {
+  pendingExercises = [];
+  renderFitnessExerciseOptions();
+  renderPendingExercises();
+  document.getElementById('fitnessModal').style.display = 'flex';
+  document.getElementById('fitnessNote').value = '';
+}
+
+function closeFitnessModal() {
+  document.getElementById('fitnessModal').style.display = 'none';
+  pendingExercises = [];
+}
+
+function renderPendingExercises() {
+  const container = document.getElementById('pendingExercisesList');
+  if (pendingExercises.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-tertiary);font-size:12.5px;padding:8px 0;">还没添加运动项</div>';
+    return;
+  }
+  container.innerHTML = '';
+  pendingExercises.forEach((ex, idx) => {
+    container.innerHTML += `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;">${escapeHtml(ex.name)} ${ex.duration ? `· ${ex.duration}分钟` : ''} ${ex.equipment ? `· ${escapeHtml(ex.equipment)}` : ''}</span>
+        <button class="btn-danger-text" onclick="removePendingExercise(${idx})">×</button>
+      </div>
+    `;
+  });
+}
+
+function addPendingExercise() {
+  const nameSel = document.getElementById('fitnessExerciseSelect');
+  const customName = document.getElementById('fitnessExerciseCustom').value.trim();
+  const duration = document.getElementById('fitnessDuration').value;
+  const equipSel = document.getElementById('fitnessEquipSelect');
+  const customEquip = document.getElementById('fitnessEquipCustom').value.trim();
+
+  const name = customName || nameSel.value;
+  if (!name) return;
+  const equipment = customEquip || equipSel.value;
+
+  pendingExercises.push({ name: name, duration: duration || '', equipment: equipment || '' });
+
+  // 新运动加入库
+  const lib = dataStore.fitness.exerciseLibrary;
+  if (customName && !lib.includes(customName)) lib.push(customName);
+  // 新器械加入库
+  const equipLib = dataStore.fitness.equipmentLibrary;
+  if (customEquip && !equipLib.includes(customEquip)) equipLib.push(customEquip);
+
+  document.getElementById('fitnessExerciseCustom').value = '';
+  document.getElementById('fitnessEquipCustom').value = '';
+  renderFitnessExerciseOptions();
+  renderPendingExercises();
+}
+
+function removePendingExercise(idx) {
+  pendingExercises.splice(idx, 1);
+  renderPendingExercises();
+}
+
+function renderFitnessExerciseOptions() {
+  const exLib = dataStore.fitness.exerciseLibrary || [];
+  const equipLib = dataStore.fitness.equipmentLibrary || [];
+  const exSel = document.getElementById('fitnessExerciseSelect');
+  const equipSel = document.getElementById('fitnessEquipSelect');
+  exSel.innerHTML = exLib.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+  equipSel.innerHTML = '<option value="">无器械</option>' + equipLib.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+}
+
+function saveFitnessRecord() {
+  const note = document.getElementById('fitnessNote').value.trim();
+  if (pendingExercises.length === 0 && !note) {
+    alert('请至少添加一个运动项或写点备注');
+    return;
+  }
   dataStore.fitness.records.push({
     id: 'fit_' + Date.now(),
     date: todayStr(),
-    content: content.trim()
+    content: note,
+    exercises: pendingExercises
   });
   saveData();
   renderFitness();
   renderHome();
+  closeFitnessModal();
+}
+
+function manageExerciseLibrary() {
+  const exLib = dataStore.fitness.exerciseLibrary || [];
+  const equipLib = dataStore.fitness.equipmentLibrary || [];
+  const exList = exLib.join('、');
+  const equipList = equipLib.join('、');
+  const newEx = prompt(`当前运动库（${exLib.length}个）：\n${exList}\n\n输入新运动名称（逗号分隔，取消则不添加）：`, '');
+  if (newEx && newEx.trim()) {
+    newEx.split(/[,，]/).forEach(name => {
+      const n = name.trim();
+      if (n && !exLib.includes(n)) exLib.push(n);
+    });
+  }
+  const newEquip = prompt(`当前器械库（${equipLib.length}个）：\n${equipList}\n\n输入新器械名称（逗号分隔，取消则不添加）：`, '');
+  if (newEquip && newEquip.trim()) {
+    newEquip.split(/[,，]/).forEach(name => {
+      const n = name.trim();
+      if (n && !equipLib.includes(n)) equipLib.push(n);
+    });
+  }
+  saveData();
 }
 
 // ===== 饮食计划模块 =====
