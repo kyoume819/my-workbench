@@ -7,3 +7,7 @@ Thumbs.db
 
 # 数据文件（用户本地数据不入库）
 data.json
+
+# Node.js
+node_modules/
+vue-demo/dist/
