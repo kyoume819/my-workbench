@@ -435,6 +435,8 @@ async function selectDataFolder() {
     }
     // 尝试读取已有数据
     await loadData();
+    // 保存句柄到 IndexedDB，下次自动恢复
+    await saveHandleToDB(dirHandle);
     document.getElementById('setupOverlay').style.display = 'none';
     isReady = true;
     renderAll();
@@ -1387,18 +1389,79 @@ function importData(event) {
   event.target.value = '';
 }
 
+// ===== IndexedDB：持久化存储文件夹句柄 =====
+let dbPromise = null;
+
+function openDB() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open('workbenchDB', 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('handles')) {
+        db.createObjectStore('handles');
+      }
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e);
+  });
+  return dbPromise;
+}
+
+async function saveHandleToDB(handle) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'dataDir');
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+async function loadHandleFromDB() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readonly');
+    const req = tx.objectStore('handles').get('dataDir');
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+async function clearHandleFromDB() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').delete('dataDir');
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
 // ===== 初始化 =====
 async function init() {
-  // 检查是否支持 File System Access API
   if (!window.showDirectoryPicker) {
     alert('你的浏览器不支持本地文件存储功能，请使用 Chrome 或 Edge 浏览器打开。');
     return;
   }
 
-  // 尝试从 sessionStorage 恢复文件夹句柄（本次会话内）
-  // 注意：File handle 不能跨会话持久化，每次打开都需要重新授权
-  // 这里为了演示，我们每次打开都显示引导
+  // 尝试从 IndexedDB 恢复之前保存的文件夹句柄
+  try {
+    const savedHandle = await loadHandleFromDB();
+    if (savedHandle) {
+      dirHandle = savedHandle;
+      dataStore = getDefaultData();
+      await loadData();
+      document.getElementById('setupOverlay').style.display = 'none';
+      isReady = true;
+      renderAll();
+      return;
+    }
+  } catch (e) {
+    console.warn('读取保存的文件夹失败：', e);
+  }
 
+  // 没有保存过，显示引导
   document.getElementById('setupOverlay').style.display = 'flex';
 }
 
