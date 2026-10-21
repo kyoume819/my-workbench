@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的工作台</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563EB'/%3E%3Ctext x='32' y='44' font-size='32' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E6%88%91%3C/text%3E%3C/svg%3E">
+<style>
+/* ===== 设计系统：CSS变量 ===== */
+:root {
+  --bg: #E8EEF7;
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-hover: rgba(255, 255, 255, 0.85);
+  --border: rgba(255, 255, 255, 0.6);
+  --border-light: rgba(255, 255, 255, 0.4);
+  --text-primary: #000000;
+  --text-secondary: #3C3C43;
+  --text-tertiary: #8E8E93;
+  --accent: #007AFF;
+  --accent-light: rgba(0, 122, 255, 0.12);
+  --accent-hover: #0056CC;
+  --accent-gradient: linear-gradient(135deg, #0A84FF 0%, #007AFF 100%);
+  --danger: #FF3B30;
+  --danger-light: rgba(255, 59, 48, 0.12);
+  --warning: #FF9500;
+  --warning-light: rgba(255, 149, 0, 0.12);
+  --success: #34C759;
+  --success-light: rgba(52, 199, 89, 0.12);
+  --high: #FF3B30;
+  --medium: #FF9500;
+  --low: #007AFF;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
+  --sidebar-w: 240px;
+  --transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  --blur: blur(30px) saturate(180%);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  background: linear-gradient(160deg, #DBEAFE 0%, #E0F2FE 40%, #FEF3C7 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== 整体布局 ===== */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== 侧边栏 ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.sidebar-logo {
+  padding: 0 20px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.sidebar-nav { list-style: none; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 2px 10px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: var(--transition);
+  border-radius: var(--radius-sm);
+  user-select: none;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  color: var(--accent);
+  background: rgba(0, 122, 255, 0.1);
+  font-weight: 600;
+}
+
+.nav-icon {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.nav-item.active .nav-icon { opacity: 1; }
+
+/* ===== 主内容区 ===== */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 28px 36px;
+  max-width: 1100px;
+}
+
+.page-header { margin-bottom: 24px; }
+.page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.page-subtitle { color: var(--text-secondary); font-size: 13px; }
+
+/* ===== 视图切换 ===== */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ===== 通用组件 ===== */
+.card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-primary);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--text-tertiary);
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.btn-primary:hover {
+  background: var(--accent-gradient);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-danger-text {
+  color: var(--danger);
+  border-color: transparent;
+  background: transparent;
+  padding: 4px 8px;
+}
+.btn-danger-text:hover { background: var(--danger-light); border-color: transparent; }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.tag-high { background: var(--danger-light); color: var(--high); }
+.tag-medium { background: var(--warning-light); color: var(--medium); }
+.tag-low { background: var(--accent-light); color: var(--low); }
+
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-idea { background: #F1F5F9; color: var(--text-secondary); }
+.status-writing { background: var(--warning-light); color: var(--warning); }
+.status-published { background: var(--success-light); color: var(--success); }
+
+.input {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  transition: var(--transition);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* ===== 首次数据文件夹选择引导 ===== */
+.setup-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.setup-box {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+
+.setup-box h2 { margin-bottom: 12px; font-size: 20px; }
+.setup-box p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; line-height: 1.7; }
+
+/* ===== 响应式 ===== */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 60px; }
+  .nav-item span { display: none; }
+  .sidebar-logo { font-size: 12px; padding: 0 10px 16px; }
+  .main-content { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+  <!-- ===== 侧边栏 ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">我的工作台</div>
+    <ul class="sidebar-nav">
+      <li class="nav-item active" data-view="home">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        <span>首页总览</span>
+      </li>
+      <li class="nav-item" data-view="today">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>今日计划</span>
+      </li>
+      <li class="nav-item" data-view="media">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4z"/></svg>
+        <span>自媒体</span>
+      </li>
+      <li class="nav-item" data-view="dev">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span>开发工作</span>
+      </li>
+      <li class="nav-item" data-view="consult">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>咨询工作</span>
+      </li>
+      <li class="nav-item" data-view="fitness">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11"/><path d="M21 21l-1-1"/><path d="M3 3l1 1"/><path d="M18 22l4-4"/><path d="M2 6l4-4"/><path d="M3 10l7-7"/><path d="M14 21l7-7"/></svg>
+        <span>健身计划</span>
+      </li>
+      <li class="nav-item" data-view="diet">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        <span>饮食计划</span>
+      </li>
+      <li class="nav-item" data-view="savings">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        <span>攒钱计划</span>
+      </li>
+      <li class="nav-item" data-view="settings">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>数据与设置</span>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ===== 主内容区 ===== -->
+  <main class="main-content">
+    <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:16px;gap:10px;">
+      <span id="saveStatus" style="font-size:12px;color:var(--text-tertiary);"></span>
+      <button class="btn btn-sm btn-primary" onclick="manualSave()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        保存
+      </button>
+    </div>
+
+    <!-- 视图：首页总览 -->
+    <section class="view active" id="view-home">
+      <div class="page-header">
+        <div class="page-title" id="homeGreeting">我的工作台</div>
+        <div class="page-subtitle" id="homeSubtitle"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="card" style="grid-column:1/-1;"></div>
+        <div class="card"></div>
+        <div class="card"></div>
+      </div>
+    </section>
+
+    <!-- 视图：今日计划 -->
+    <section class="view" id="view-today">
+      <div class="page-header">
+        <div class="page-title">今日计划</div>
+        <div class="page-subtitle">今天要做的事</div>
+      </div>
+      <div class="card"><div class="empty-state">今日计划模块开发中...</div></div>
+    </section>
+
+    <!-- 视图：自媒体 -->
+    <section class="view" id="view-media">
+      <div class="page-header">
+        <div class="page-title">自媒体</div>
+        <div class="page-subtitle">选题与发布追踪</div>
+      </div>
+      <div class="card"><div class="empty-state">自媒体模块开发中...</div></div>
+    </section>
+
+    <!-- 视图：开发工作 -->
+    <section class="view" id="view-dev">
+      <div class="page-header">
+        <div class="page-title">开发工作</div>
+        <div class="page-subtitle">项目任务管理</div>
+      </div>
+      <div class="card"><div class="empty-state">开发工作模块开发中...</div></div>
+    </section>
+
+    <!-- 视图：咨询工作 -->
+    <section class="view" id="view-consult">
+      <div class="page-header">
+        <div class="page-title">咨询工作</div>
+        <div class="page-subtitle">客户跟进管理</div>
+      </div>
+      <div class="card"><div class="empty-state">咨询工作模块开发中...</div></div>
+    </section>
+
+    <!-- 视图：健身计划 -->
+    <section class="view" id="view-fitness">
+      <div class="page-header">
+        <div class="page-title">健身计划</div>
+        <div class="page-subtitle">训练安排与记录</div>
+      </div>
+      <div class="card"><div class="empty-state">健身计划模块开发中...</div></div>
+    </section>
+
+    <!-- 视图：饮食计划 -->
+    <section class="view" id="view-diet">
+      <div class="page-header">
+        <div class="page-title">饮食计划</div>
+        <div class="page-subtitle">每日饮食记录</div>
+      </div>
+      <div class="card"><div class="empty-state">饮食计划模块开发中...</div></div>
+    </section>
+
+    <!-- 视图：攒钱计划 -->
+    <section class="view" id="view-savings">
+      <div class="page-header">
+        <div class="page-title">攒钱计划</div>
+        <div class="page-subtitle">设定存钱目标，记录每一笔积蓄</div>
+      </div>
+      <div class="card"></div>
+    </section>
+
+    <!-- 视图：数据与设置 -->
+    <section class="view" id="view-settings">
+      <div class="page-header">
+        <div class="page-title">数据与设置</div>
+        <div class="page-subtitle">备份与恢复</div>
+      </div>
+      <div class="card"><div class="empty-state">设置模块开发中...</div></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== 首次数据文件夹选择引导 ===== -->
+<div class="setup-overlay" id="setupOverlay" style="display:none;">
+  <div class="setup-box">
+    <h2 id="setupTitle">欢迎使用我的工作台</h2>
+    <p id="setupDesc">首次使用需要选择一个文件夹来保存你的数据。<br>建议在桌面新建一个空文件夹（如"我的APP数据"），<br>选择它后所有数据都会自动保存在那里。</p>
+    <button class="btn btn-primary" id="setupBtn" onclick="selectDataFolder()">选择数据文件夹</button>
+    <div style="margin-top:12px;">
+      <button class="btn" id="setupAltBtn" style="display:none;" onclick="showFirstSetup()">换一个文件夹</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 咨询事项编辑模态框 ===== -->
+<div id="consultModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:12px;padding:28px;width:440px;max-width:90vw;">
+    <h3 id="consultModalTitle" style="margin-bottom:18px;font-size:18px;">新建咨询事项</h3>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">客户/事项名称</label>
+      <input type="text" id="consultModalName" class="input" style="width:100%;" placeholder="如：张总 - 数字化转型咨询">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">当前阶段描述</label>
+      <textarea id="consultModalStage" class="input" style="width:100%;min-height:80px;resize:vertical;" placeholder="描述一下当前进展、待办事项..."></textarea>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">下次跟进日期</label>
+      <input type="date" id="consultModalDate" class="input" style="width:100%;">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" onclick="closeConsultModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveConsultModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 健身记录模态框 ===== -->
+<div id="fitnessModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:12px;padding:28px;width:500px;max-width:90vw;max-height:90vh;overflow-y:auto;">
+    <h3 style="margin-bottom:18px;font-size:18px;">记录今日训练</h3>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">添加运动项</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <select id="fitnessExerciseSelect" class="input" style="flex:1.5;"></select>
+        <input type="number" id="fitnessDuration" class="input" style="flex:0.8;width:80px;" placeholder="分钟" min="1">
+        <select id="fitnessEquipSelect" class="input" style="flex:1;"></select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input type="text" id="fitnessExerciseCustom" class="input" style="flex:1;" placeholder="或自定义运动名">
+        <input type="text" id="fitnessEquipCustom" class="input" style="flex:1;" placeholder="或自定义器械">
+      </div>
+      <button class="btn btn-sm" onclick="addPendingExercise()">+ 添加到记录</button>
+    </div>
+
+    <div id="pendingExercisesList" style="margin-bottom:14px;padding:10px;background:var(--bg);border-radius:var(--radius-sm);"></div>
+
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text-secondary);">备注（可选）</label>
+      <textarea id="fitnessNote" class="input" style="width:100%;min-height:60px;resize:vertical;" placeholder="训练感受、身体状态..."></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" onclick="closeFitnessModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveFitnessRecord()">保存记录</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 全局状态 =====
+let dataStore = null;
+let dirHandle = null;
+let isReady = false;
+
+// 默认数据结构
+function getDefaultData() {
+  return {
+    todos: [],
+    media: [],
+    projects: [],
+    consultations: [],
+    fitness: {
+      weeklyPlan: { 'mon': '', 'tue': '', 'wed': '', 'thu': '', 'fri': '', 'sat': '', 'sun': '' },
+      records: [],
+      exerciseLibrary: ['平板卧推', '上斜卧推', '哑铃飞鸟', '引体向上', '高位下拉', '坐姿划船', '杠铃深蹲', '硬拉', '哑铃肩推', '侧平举', '弯举', '臂屈伸', '俯卧撑', '卷腹', '平板支撑', '跑步', '跳绳', '动感单车'],
+      equipmentLibrary: ['杠铃', '哑铃', '跑步机', '跳绳', '瑜伽垫', '弹力带', '龙门架', '卧推凳', '史密斯架']
+    },
+    diet: {},
+    games: [],
+    notes: []
+  };
+}
+
+// ===== 视图切换 =====
+function switchView(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + viewName).classList.add('active');
+  document.querySelector('.nav-item[data-view="' + viewName + '"]').classList.add('active');
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => switchView(item.dataset.view));
+});
+
+// ===== 数据持久化：File System Access API =====
+// ===== 渲染入口 =====
+function renderAll() {
+  renderHome();
+  renderToday();
+  renderMedia();
+  renderDev();
+  renderConsult();
+  renderFitness();
+  renderDiet();
+  renderSavings();
+  renderSettings();
+}
+
+async function selectDataFolder() {
+  try {
+    dirHandle = await window.showDirectoryPicker();
+    // 先初始化数据
+    if (!dataStore) {
+      dataStore = getDefaultData();
+    }
+    // 尝试读取已有数据
+    await loadData();
+    // 保存句柄到 IndexedDB，下次自动恢复
+    await saveHandleToDB(dirHandle);
+    document.getElementById('setupOverlay').style.display = 'none';
+    isReady = true;
+    renderAll();
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      alert('选择文件夹失败：' + e.message);
+    }
+  }
+}
+
+async function saveData() {
+  if (!dataStore) return;
+  try {
+    localStorage.setItem('workbench_data', JSON.stringify(dataStore));
+  } catch (e) {
+    console.error('保存失败:', e);
+  }
+}
+
+async function manualSave() {
+  await saveData();
+  const status = document.getElementById('saveStatus');
+  status.textContent = '已保存 ✓';
+  status.style.color = 'var(--success)';
+  setTimeout(() => {
+    status.textContent = '';
+  }, 2000);
+}
+
+async function loadData() {
+  try {
+    const text = localStorage.getItem('workbench_data');
+    if (text) {
+      dataStore = JSON.parse(text);
+    } else {
+      dataStore = getDefaultData();
+    }
+  } catch (e) {
+    dataStore = getDefaultData();
+  }
+  // 数据迁移：补全新增字段，兼容旧数据
+  const defaults = getDefaultData();
+  if (!dataStore.fitness) dataStore.fitness = defaults.fitness;
+  if (!dataStore.fitness.exerciseLibrary) dataStore.fitness.exerciseLibrary = defaults.fitness.exerciseLibrary;
+  if (!dataStore.fitness.equipmentLibrary) dataStore.fitness.equipmentLibrary = defaults.fitness.equipmentLibrary;
+  if (!dataStore.fitness.weeklyPlan) dataStore.fitness.weeklyPlan = defaults.fitness.weeklyPlan;
+  if (!dataStore.fitness.records) dataStore.fitness.records = [];
+  if (!dataStore.savings) dataStore.savings = { goal: null, records: [] };
+}
+
+// ===== 工具函数 =====
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ===== 今日计划模块 =====
+function renderToday() {
+  const container = document.querySelector('#view-today .card');
+  let todos = dataStore.todos || [];
+
+  // 日常任务每天自动重置完成状态（如果跨天了）
+  const today = todayStr();
+  todos.forEach(t => {
+    if ((t.isDaily || t.repeatUntil) && t.lastDoneDate !== today) {
+      t.done = false;
+    }
+  });
+
+  // 过滤掉已经过期的时间段任务
+  todos = todos.filter(t => {
+    if (t.repeatUntil && t.repeatUntil < today) return false;
+    return true;
+  });
+
+  // 按优先级排序：高>中>低，未完成在前
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  const sorted = [...todos].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
+  });
+
+  const doneCount = todos.filter(t => t.done).length;
+  const dailyCount = todos.filter(t => t.isDaily).length;
+
+  let html = `
+    <div class="card-title">今日任务
+      <span style="font-weight:400;font-size:12px;color:var(--text-secondary);">已完成 ${doneCount} / ${todos.length}${dailyCount > 0 ? ` · 日常 ${dailyCount}项` : ''}</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <input type="text" class="input" id="newTodoInput" placeholder="添加今天要做的事..." style="flex:1;" onkeydown="if(event.key==='Enter')addTodo()">
+      <select class="input" id="newTodoPriority">
+        <option value="high">高优先级</option>
+        <option value="medium" selected>中优先级</option>
+        <option value="low">低优先级</option>
+      </select>
+      <button class="btn btn-primary" onclick="addTodo()">添加</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;font-size:12.5px;color:var(--text-secondary);">
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+        <input type="checkbox" id="todoIsDaily"> 每天重复（日常任务）
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+        重复到 <input type="date" id="todoRepeatUntil" class="input" style="padding:3px 6px;font-size:12px;">
+      </label>
+    </div>
+  `;
+
+  if (sorted.length === 0) {
+    html += '<div class="empty-state">还没有任务，添加一个吧</div>';
+  } else {
+    html += '<ul style="list-style:none;">';
+    sorted.forEach(todo => {
+      const priorityTag = todo.priority === 'high' ? '<span class="tag tag-high">高</span>'
+        : todo.priority === 'medium' ? '<span class="tag tag-medium">中</span>'
+        : '<span class="tag tag-low">低</span>';
+      let repeatTag = '';
+      if (todo.isDaily) repeatTag = '<span class="tag tag-low" style="margin-left:4px;">日常</span>';
+      else if (todo.repeatUntil) repeatTag = `<span class="tag tag-medium" style="margin-left:4px;">到${todo.repeatUntil.slice(5)}</span>`;
+
+      html += `
+        <li style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);${todo.done ? 'opacity:0.6;' : ''}">
+          <div class="task-checkbox ${todo.done ? 'checked' : ''}" onclick="toggleTodo('${todo.id}')" style="width:18px;height:18px;border:2px solid var(--text-tertiary);border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;${todo.done ? 'background:var(--accent);border-color:var(--accent);' : ''}">
+            ${todo.done ? '<div style="width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);margin-bottom:2px;"></div>' : ''}
+          </div>
+          <span style="flex:1;${todo.done ? 'text-decoration:line-through;color:var(--text-tertiary);' : ''}">${escapeHtml(todo.text)}${repeatTag}</span>
+          ${priorityTag}
+          <button class="btn-danger-text" onclick="deleteTodo('${todo.id}')" style="font-size:16px;">×</button>
+        </li>
+      `;
+    });
+    html += '</ul>';
+  }
+
+  container.innerHTML = html;
+}
+
+function addTodo() {
+  const input = document.getElementById('newTodoInput');
+  const priority = document.getElementById('newTodoPriority').value;
+  const text = input.value.trim();
+  const isDaily = document.getElementById('todoIsDaily').checked;
+  const repeatUntil = document.getElementById('todoRepeatUntil').value || null;
+
+  if (!text) return;
+
+  dataStore.todos.push({
+    id: 'todo_' + Date.now(),
+    text: text,
+    priority: priority,
+    done: false,
+    isDaily: isDaily,
+    repeatUntil: repeatUntil,
+    lastDoneDate: null,
+    createdAt: new Date().toISOString()
+  });
+
+  saveData();
+  renderToday();
+  renderHome();
+}
+
+function toggleTodo(id) {
+  const todo = dataStore.todos.find(t => t.id === id);
+  if (todo) {
+    todo.done = !todo.done;
+    todo.lastDoneDate = todo.done ? todayStr() : null;
+    saveData();
+    renderToday();
+    renderHome();
+  }
+}
+
+function deleteTodo(id) {
+  dataStore.todos = dataStore.todos.filter(t => t.id !== id);
+  saveData();
+  renderToday();
+  renderHome();
+}
+
+// ===== 自媒体模块 =====
+function renderMedia() {
+  const container = document.querySelector('#view-media .card');
+  const items = dataStore.media || [];
+
+  const ideaCount = items.filter(i => i.status === 'idea').length;
+  const writingCount = items.filter(i => i.status === 'writing').length;
+  const publishedCount = items.filter(i => i.status === 'published').length;
+
+  const statusMap = {
+    idea: { label: '选题中', class: 'status-idea', next: 'writing', nextLabel: '开始写稿' },
+    writing: { label: '写稿中', class: 'status-writing', next: 'published', nextLabel: '标记已发布' },
+    published: { label: '已发布', class: 'status-published', next: null }
+  };
+
+  let html = `
+    <div style="display:flex;gap:12px;margin-bottom:16px;">
+      <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;">${ideaCount}</div>
+        <div style="font-size:12px;color:var(--text-secondary);">选题中</div>
+      </div>
+      <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;">${writingCount}</div>
+        <div style="font-size:12px;color:var(--text-secondary);">写稿中</div>
+      </div>
+      <div style="flex:1;background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;">${publishedCount}</div>
+        <div style="font-size:12px;color:var(--text-secondary);">已发布</div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <button class="btn btn-primary" onclick="document.getElementById('newMediaForm').style.display='block'">+ 新建选题</button>
+    </div>
+    <div id="newMediaForm" style="display:none;margin-bottom:14px;padding:12px;background:var(--bg);border-radius:var(--radius-sm);">
+      <input type="text" class="input" id="newMediaTitle" placeholder="选题标题..." style="width:100%;margin-bottom:8px;" onkeydown="if(event.key==='Enter')addMedia()">
+      <input type="text" class="input" id="newMediaPlatform" placeholder="发布平台（小红书/公众号/B站/知乎）..." style="width:100%;margin-bottom:8px;">
+      <button class="btn btn-primary btn-sm" onclick="addMedia()">保存选题</button>
+    </div>
+  `;
+
+  if (items.length === 0) {
+    html += '<div class="empty-state">还没有选题，新建一个吧</div>';
+  } else {
+    items.forEach(item => {
+      const s = statusMap[item.status] || statusMap.idea;
+      html += `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+          <div style="flex:1;">
+            <div style="font-weight:600;margin-bottom:4px;">${escapeHtml(item.title)}</div>
+            <div style="font-size:12px;color:var(--text-secondary);">平台：${escapeHtml(item.platform || '未设置')} · 创建于 ${formatDate(item.createdAt)}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="status-badge ${s.class}">${s.label}</span>
+            ${s.next ? `<button class="btn btn-sm" onclick="advanceMediaStatus('${item.id}')">${s.nextLabel}</button>` : ''}
+            <button class="btn-danger-text" onclick="deleteMedia('${item.id}')">×</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function addMedia() {
+  const titleInput = document.getElementById('newMediaTitle');
+  const platformInput = document.getElementById('newMediaPlatform');
+  const title = titleInput.value.trim();
+  if (!title) return;
+
+  dataStore.media.push({
+    id: 'media_' + Date.now(),
+    title: title,
+    platform: platformInput.value.trim(),
+    status: 'idea',
+    createdAt: new Date().toISOString()
+  });
+
+  saveData();
+  renderMedia();
+  renderHome();
+}
+
+function advanceMediaStatus(id) {
+  const item = dataStore.media.find(i => i.id === id);
+  if (!item) return;
+  if (item.status === 'idea') item.status = 'writing';
+  else if (item.status === 'writing') {
+    item.status = 'published';
+    item.publishedAt = new Date().toISOString();
+  }
+  saveData();
+  renderMedia();
+  renderHome();
+}
+
+function deleteMedia(id) {
+  dataStore.media = dataStore.media.filter(i => i.id !== id);
+  saveData();
+  renderMedia();
+  renderHome();
+}
+
+// ===== 开发工作模块 =====
+let currentProjectId = null;
+
+function renderDev() {
+  const container = document.querySelector('#view-dev .card');
+  const projects = dataStore.projects || [];
+
+  if (projects.length === 0) {
+    currentProjectId = null;
+  } else if (!currentProjectId || !projects.find(p => p.id === currentProjectId)) {
+    currentProjectId = projects[0].id;
+  }
+
+  const currentProject = projects.find(p => p.id === currentProjectId);
+
+  let html = `
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+  `;
+
+  projects.forEach(p => {
+    const active = p.id === currentProjectId;
+    html += `<div onclick="switchProject('${p.id}')" style="padding:6px 14px;border-radius:20px;background:${active ? 'var(--accent)' : 'var(--surface)'};border:1px solid ${active ? 'var(--accent)' : 'var(--border)'};color:${active ? 'white' : 'var(--text-primary)'};cursor:pointer;font-size:13px;">${escapeHtml(p.name)}</div>`;
+  });
+
+  html += `<div onclick="addProject()" style="padding:6px 14px;border-radius:20px;border:1px dashed var(--text-tertiary);cursor:pointer;font-size:13px;color:var(--text-tertiary);">+ 新建项目</div>`;
+  html += '</div>';
+
+  if (currentProject) {
+    const todos = currentProject.todos || [];
+    html += `
+      <div class="card-title">待办事项 (${todos.length})
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('newDevTodoForm').style.display='block'">+ 添加</button>
+      </div>
+      <div id="newDevTodoForm" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border-radius:var(--radius-sm);">
+        <input type="text" class="input" id="newDevTodoText" placeholder="待办内容..." style="width:100%;margin-bottom:8px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <select class="input" id="newDevTodoPriority" style="flex:1;">
+            <option value="high">高优先级</option>
+            <option value="medium" selected>中优先级</option>
+            <option value="low">低优先级</option>
+          </select>
+          <input type="date" class="input" id="newDevTodoDate" style="flex:1;" title="截止日期">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addDevTodo()">添加</button>
+      </div>
+    `;
+
+    if (todos.length === 0) {
+      html += '<div class="empty-state">这个项目还没有待办事项</div>';
+    } else {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const sorted = [...todos].sort((a, b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        return (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
+      });
+
+      sorted.forEach(todo => {
+        const priorityTag = todo.priority === 'high' ? '<span class="tag tag-high">高</span>'
+          : todo.priority === 'medium' ? '<span class="tag tag-medium">中</span>'
+          : '<span class="tag tag-low">低</span>';
+
+        let dateHtml = '';
+        if (todo.dueDate) {
+          const due = new Date(todo.dueDate);
+          due.setHours(0,0,0,0);
+          const daysLeft = Math.round((due - today) / (1000*60*60*24));
+          let dateColor = 'var(--text-tertiary)';
+          if (!todo.done && daysLeft < 0) dateColor = 'var(--danger)';
+          else if (!todo.done && daysLeft <= 1) dateColor = 'var(--warning)';
+          dateHtml = `<span style="font-size:11.5px;color:${dateColor};margin-left:8px;">📅 ${todo.dueDate}</span>`;
+        }
+
+        html += `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);${todo.done ? 'opacity:0.6;' : ''}">
+            <div class="task-checkbox ${todo.done ? 'checked' : ''}" onclick="toggleDevTodo('${todo.id}')" style="width:18px;height:18px;border:2px solid var(--text-tertiary);border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;${todo.done ? 'background:var(--accent);border-color:var(--accent);' : ''}">
+              ${todo.done ? '<div style="width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);margin-bottom:2px;"></div>' : ''}
+            </div>
+            <span style="flex:1;${todo.done ? 'text-decoration:line-through;color:var(--text-tertiary);' : ''}">${escapeHtml(todo.text)}${dateHtml}</span>
+            ${priorityTag}
+            <button class="btn-danger-text" onclick="deleteDevTodo('${todo.id}')">×</button>
+          </div>
+        `;
+      });
+    }
+  } else {
+    html += '<div class="empty-state">还没有项目，点击上方"新建项目"开始</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function switchProject(id) {
+  currentProjectId = id;
+  renderDev();
+}
+
+function addProject() {
+  const name = prompt('项目名称：');
+  if (!name || !name.trim()) return;
+  dataStore.projects.push({
+    id: 'proj_' + Date.now(),
+    name: name.trim(),
+    todos: [],
+    createdAt: new Date().toISOString()
+  });
+  currentProjectId = dataStore.projects[dataStore.projects.length - 1].id;
+  saveData();
+  renderDev();
+  renderHome();
+}
+
+function addDevTodo() {
+  const input = document.getElementById('newDevTodoText');
+  const prioritySel = document.getElementById('newDevTodoPriority');
+  const dateInput = document.getElementById('newDevTodoDate');
+  const text = input.value.trim();
+  if (!text || !currentProjectId) return;
+  const project = dataStore.projects.find(p => p.id === currentProjectId);
+  if (!project) return;
+  project.todos.push({
+    id: 'dtodo_' + Date.now(),
+    text: text,
+    priority: prioritySel.value,
+    dueDate: dateInput.value || null,
+    done: false
+  });
+  saveData();
+  renderDev();
+  renderHome();
+}
+
+function toggleDevTodo(todoId) {
+  const project = dataStore.projects.find(p => p.id === currentProjectId);
+  if (!project) return;
+  const todo = project.todos.find(t => t.id === todoId);
+  if (todo) {
+    todo.done = !todo.done;
+    saveData();
+    renderDev();
+    renderHome();
+  }
+}
+
+function deleteDevTodo(todoId) {
+  const project = dataStore.projects.find(p => p.id === currentProjectId);
+  if (!project) return;
+  project.todos = project.todos.filter(t => t.id !== todoId);
+  saveData();
+  renderDev();
+  renderHome();
+}
+
+// ===== 咨询工作模块 =====
+let editingConsultId = null;
+
+function renderConsult() {
+  const container = document.querySelector('#view-consult .card');
+  const items = dataStore.consultations || [];
+
+  let html = `
+    <div style="margin-bottom:14px;">
+      <button class="btn btn-primary" onclick="openConsultModal()">+ 新建咨询事项</button>
+    </div>
+  `;
+
+  if (items.length === 0) {
+    html += '<div class="empty-state">还没有咨询事项，点击上方按钮新建</div>';
+  } else {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    items.forEach(item => {
+      const followupDate = new Date(item.followupDate);
+      followupDate.setHours(0,0,0,0);
+      const daysUntil = Math.round((followupDate - today) / (1000*60*60*24));
+
+      let highlightStyle = '';
+      let highlightLabel = '';
+      if (daysUntil < 0) {
+        highlightStyle = 'background:var(--danger-light);border-left:3px solid var(--danger);';
+        highlightLabel = `<div style="font-size:12px;color:var(--danger);margin-top:6px;">已过期 ${Math.abs(daysUntil)} 天，记得跟进</div>`;
+      } else if (daysUntil === 0) {
+        highlightStyle = 'background:var(--warning-light);border-left:3px solid var(--warning);';
+        highlightLabel = `<div style="font-size:12px;color:var(--warning);margin-top:6px;">今天需要跟进</div>`;
+      } else if (daysUntil === 1) {
+        highlightStyle = 'background:var(--warning-light);border-left:3px solid var(--warning);';
+        highlightLabel = `<div style="font-size:12px;color:var(--warning);margin-top:6px;">明天跟进</div>`;
+      } else {
+        highlightStyle = 'border-left:3px solid var(--border);';
+      }
+
+      html += `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;${highlightStyle}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+            <div style="flex:1;">
+              <div style="font-weight:600;margin-bottom:4px;">${escapeHtml(item.name)}</div>
+              <div style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;line-height:1.6;">${escapeHtml(item.stage || '未设置阶段')}</div>
+              <div style="font-size:12px;color:var(--text-tertiary);margin-top:6px;">下次跟进：${item.followupDate}</div>
+              ${highlightLabel}
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+              <button class="btn btn-sm" onclick="openConsultModal('${item.id}')">编辑</button>
+              <button class="btn-danger-text" onclick="deleteConsult('${item.id}')" title="删除">×</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function openConsultModal(id) {
+  editingConsultId = id || null;
+  const item = id ? dataStore.consultations.find(i => i.id === id) : null;
+
+  document.getElementById('consultModalName').value = item ? item.name : '';
+  document.getElementById('consultModalStage').value = item ? (item.stage || '') : '';
+  document.getElementById('consultModalDate').value = item ? item.followupDate : todayStr();
+  document.getElementById('consultModalTitle').textContent = item ? '编辑咨询事项' : '新建咨询事项';
+  document.getElementById('consultModal').style.display = 'flex';
+  document.getElementById('consultModalName').focus();
+}
+
+function closeConsultModal() {
+  document.getElementById('consultModal').style.display = 'none';
+  editingConsultId = null;
+}
+
+function saveConsultModal() {
+  const name = document.getElementById('consultModalName').value.trim();
+  const stage = document.getElementById('consultModalStage').value.trim();
+  const followupDate = document.getElementById('consultModalDate').value || todayStr();
+
+  if (!name) {
+    alert('请输入客户/事项名称');
+    return;
+  }
+
+  if (editingConsultId) {
+    const item = dataStore.consultations.find(i => i.id === editingConsultId);
+    if (item) {
+      item.name = name;
+      item.stage = stage;
+      item.followupDate = followupDate;
+    }
+  } else {
+    dataStore.consultations.push({
+      id: 'consult_' + Date.now(),
+      name: name,
+      stage: stage,
+      followupDate: followupDate,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  saveData();
+  renderConsult();
+  renderHome();
+  closeConsultModal();
+}
+
+function deleteConsult(id) {
+  const item = dataStore.consultations.find(i => i.id === id);
+  if (!item) return;
+  if (confirm(`确定删除「${item.name}」吗？`)) {
+    dataStore.consultations = dataStore.consultations.filter(i => i.id !== id);
+    saveData();
+    renderConsult();
+    renderHome();
+  }
+}
+
+// ===== 健身计划模块 =====
+let pendingExercises = [];
+
+function renderFitness() {
+  const container = document.querySelector('#view-fitness .card');
+  const fitness = dataStore.fitness || { weeklyPlan: {}, records: [] };
+  const plan = fitness.weeklyPlan || {};
+  const records = fitness.records || [];
+
+  const days = [
+    { key: 'mon', name: '周一' },
+    { key: 'tue', name: '周二' },
+    { key: 'wed', name: '周三' },
+    { key: 'thu', name: '周四' },
+    { key: 'fri', name: '周五' },
+    { key: 'sat', name: '周六' },
+    { key: 'sun', name: '周日' }
+  ];
+
+  let html = `<div class="card-title">本周训练计划
+    <button class="btn btn-sm" onclick="editWeeklyPlan()">编辑计划</button>
+  </div>`;
+
+  html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:20px;">';
+  days.forEach(day => {
+    const focus = plan[day.key] || '休息';
+    const isRest = focus === '休息' || !focus;
+    html += `
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">${day.name}</div>
+        <div style="font-size:12.5px;font-weight:500;${isRest ? 'color:var(--text-tertiary);' : ''}">${escapeHtml(focus)}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+
+  html += `<div class="card-title">训练记录
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-sm" onclick="manageExerciseLibrary()">管理运动库</button>
+      <button class="btn btn-sm btn-primary" onclick="openFitnessModal()">+ 记录今日训练</button>
+    </div>
+  </div>`;
+
+  if (records.length === 0) {
+    html += '<div class="empty-state">还没有训练记录</div>';
+  } else {
+    const sorted = [...records].sort((a, b) => b.date.localeCompare(a.date));
+    sorted.forEach(rec => {
+      let exercisesHtml = '';
+      if (rec.exercises && rec.exercises.length > 0) {
+        exercisesHtml = '<div style="margin-top:6px;">';
+        rec.exercises.forEach(ex => {
+          exercisesHtml += `<div style="font-size:12.5px;color:var(--text-secondary);padding:2px 0;">• ${escapeHtml(ex.name)} ${ex.duration ? `(${ex.duration}分钟)` : ''} ${ex.equipment ? `[${escapeHtml(ex.equipment)}]` : ''}</div>`;
+        });
+        exercisesHtml += '</div>';
+      }
+      html += `
+        <div style="padding:10px 0;border-bottom:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px;">${rec.date}</div>
+          ${rec.content ? `<div style="font-size:13.5px;">${escapeHtml(rec.content)}</div>` : ''}
+          ${exercisesHtml}
+        </div>
+      `;
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function editWeeklyPlan() {
+  const fitness = dataStore.fitness;
+  const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  const keys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  days.forEach((day, i) => {
+    const current = fitness.weeklyPlan[keys[i]] || '休息';
+    const val = prompt(`${day}练什么（留空为休息）：`, current);
+    if (val !== null) {
+      fitness.weeklyPlan[keys[i]] = val.trim() || '休息';
+    }
+  });
+  saveData();
+  renderFitness();
+}
+
+function openFitnessModal() {
+  pendingExercises = [];
+  renderFitnessExerciseOptions();
+  renderPendingExercises();
+  document.getElementById('fitnessModal').style.display = 'flex';
+  document.getElementById('fitnessNote').value = '';
+}
+
+function closeFitnessModal() {
+  document.getElementById('fitnessModal').style.display = 'none';
+  pendingExercises = [];
+}
+
+function renderPendingExercises() {
+  const container = document.getElementById('pendingExercisesList');
+  if (pendingExercises.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-tertiary);font-size:12.5px;padding:8px 0;">还没添加运动项</div>';
+    return;
+  }
+  container.innerHTML = '';
+  pendingExercises.forEach((ex, idx) => {
+    container.innerHTML += `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;">${escapeHtml(ex.name)} ${ex.duration ? `· ${ex.duration}分钟` : ''} ${ex.equipment ? `· ${escapeHtml(ex.equipment)}` : ''}</span>
+        <button class="btn-danger-text" onclick="removePendingExercise(${idx})">×</button>
+      </div>
+    `;
+  });
+}
+
+function addPendingExercise() {
+  const nameSel = document.getElementById('fitnessExerciseSelect');
+  const customName = document.getElementById('fitnessExerciseCustom').value.trim();
+  const duration = document.getElementById('fitnessDuration').value;
+  const equipSel = document.getElementById('fitnessEquipSelect');
+  const customEquip = document.getElementById('fitnessEquipCustom').value.trim();
+
+  const name = customName || nameSel.value;
+  if (!name) return;
+  const equipment = customEquip || equipSel.value;
+
+  pendingExercises.push({ name: name, duration: duration || '', equipment: equipment || '' });
+
+  // 新运动加入库
+  const lib = dataStore.fitness.exerciseLibrary;
+  if (customName && !lib.includes(customName)) lib.push(customName);
+  // 新器械加入库
+  const equipLib = dataStore.fitness.equipmentLibrary;
+  if (customEquip && !equipLib.includes(customEquip)) equipLib.push(customEquip);
+
+  document.getElementById('fitnessExerciseCustom').value = '';
+  document.getElementById('fitnessEquipCustom').value = '';
+  renderFitnessExerciseOptions();
+  renderPendingExercises();
+}
+
+function removePendingExercise(idx) {
+  pendingExercises.splice(idx, 1);
+  renderPendingExercises();
+}
+
+function renderFitnessExerciseOptions() {
+  const exLib = dataStore.fitness.exerciseLibrary || [];
+  const equipLib = dataStore.fitness.equipmentLibrary || [];
+  const exSel = document.getElementById('fitnessExerciseSelect');
+  const equipSel = document.getElementById('fitnessEquipSelect');
+  exSel.innerHTML = exLib.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+  equipSel.innerHTML = '<option value="">无器械</option>' + equipLib.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+}
+
+function saveFitnessRecord() {
+  const note = document.getElementById('fitnessNote').value.trim();
+  if (pendingExercises.length === 0 && !note) {
+    alert('请至少添加一个运动项或写点备注');
+    return;
+  }
+  dataStore.fitness.records.push({
+    id: 'fit_' + Date.now(),
+    date: todayStr(),
+    content: note,
+    exercises: pendingExercises
+  });
+  saveData();
+  renderFitness();
+  renderHome();
+  closeFitnessModal();
+}
+
+function manageExerciseLibrary() {
+  const exLib = dataStore.fitness.exerciseLibrary || [];
+  const equipLib = dataStore.fitness.equipmentLibrary || [];
+  const exList = exLib.join('、');
+  const equipList = equipLib.join('、');
+  const newEx = prompt(`当前运动库（${exLib.length}个）：\n${exList}\n\n输入新运动名称（逗号分隔，取消则不添加）：`, '');
+  if (newEx && newEx.trim()) {
+    newEx.split(/[,，]/).forEach(name => {
+      const n = name.trim();
+      if (n && !exLib.includes(n)) exLib.push(n);
+    });
+  }
+  const newEquip = prompt(`当前器械库（${equipLib.length}个）：\n${equipList}\n\n输入新器械名称（逗号分隔，取消则不添加）：`, '');
+  if (newEquip && newEquip.trim()) {
+    newEquip.split(/[,，]/).forEach(name => {
+      const n = name.trim();
+      if (n && !equipLib.includes(n)) equipLib.push(n);
+    });
+  }
+  saveData();
+}
+
+// ===== 饮食计划模块 =====
+// 常见食物营养数据库（每100g）
+const FOOD_DB = {
+  '米饭': { kcal: 116, protein: 2.6, fat: 0.3, carb: 25.9 },
+  '鸡胸肉': { kcal: 165, protein: 31, fat: 3.6, carb: 0 },
+  '鸡蛋': { kcal: 144, protein: 13.3, fat: 8.8, carb: 2.8 },
+  '燕麦': { kcal: 389, protein: 16.9, fat: 6.9, carb: 66.3 },
+  '牛肉': { kcal: 250, protein: 26, fat: 15, carb: 0 },
+  '三文鱼': { kcal: 208, protein: 20, fat: 13, carb: 0 },
+  '西兰花': { kcal: 34, protein: 2.8, fat: 0.4, carb: 6.6 },
+  '鸡胸肉沙拉': { kcal: 120, protein: 15, fat: 5, carb: 5 },
+  '红薯': { kcal: 86, protein: 1.6, fat: 0.1, carb: 20.1 },
+  '牛奶': { kcal: 54, protein: 3, fat: 3.2, carb: 3.4 },
+  '香蕉': { kcal: 93, protein: 1.4, fat: 0.2, carb: 22 },
+  '苹果': { kcal: 52, protein: 0.2, fat: 0.2, carb: 14 },
+  '全麦面包': { kcal: 247, protein: 13, fat: 3.4, carb: 41 },
+  '豆腐': { kcal: 81, protein: 8.1, fat: 3.7, carb: 4.2 },
+  '虾': { kcal: 99, protein: 24, fat: 0.3, carb: 0.2 },
+  '面条': { kcal: 137, protein: 4.8, fat: 0.7, carb: 28 },
+  '猪肉': { kcal: 395, protein: 13.2, fat: 37, carb: 2.4 },
+  '橙汁': { kcal: 45, protein: 0.7, fat: 0.2, carb: 10.4 }
+};
+
+function currentDietDate() {
+  return window._dietDate || todayStr();
+}
+
+function renderDiet() {
+  const container = document.querySelector('#view-diet .card');
+  const diet = dataStore.diet || {};
+  const date = currentDietDate();
+  if (!diet[date]) diet[date] = { breakfast: [], lunch: [], dinner: [], goal: null, bodyStats: null };
+  const dayRecord = diet[date];
+
+  // 计算今日营养汇总
+  let totalKcal = 0, totalProtein = 0, totalFat = 0, totalCarb = 0;
+  ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+    (dayRecord[meal] || []).forEach(item => {
+      totalKcal += item.kcal || 0;
+      totalProtein += item.protein || 0;
+      totalFat += item.fat || 0;
+      totalCarb += item.carb || 0;
+    });
+  });
+
+  // 今日运动消耗（从健身记录估算）
+  const fitnessRecords = (dataStore.fitness && dataStore.fitness.records) || [];
+  const todayFitness = fitnessRecords.filter(r => r.date === date);
+  let exerciseKcal = 0;
+  todayFitness.forEach(r => {
+    if (r.exercises) {
+      r.exercises.forEach(ex => {
+        // 粗略估算：每分钟约6大卡
+        exerciseKcal += (parseInt(ex.duration) || 0) * 6;
+      });
+    }
+  });
+
+  const netKcal = totalKcal - exerciseKcal;
+
+  let html = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <button class="btn btn-sm" onclick="changeDietDate(-1)">← 前一天</button>
+      <div style="font-weight:600;">${date}</div>
+      <button class="btn btn-sm" onclick="changeDietDate(1)">后一天 →</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;">${Math.round(totalKcal)}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">摄入(大卡)</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;">-${exerciseKcal}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">运动消耗</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:${netKcal > 2000 ? 'var(--danger)' : 'var(--success)'};">${Math.round(netKcal)}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">净摄入</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:14px;font-weight:600;">${totalProtein.toFixed(1)}g / ${totalFat.toFixed(1)}g / ${totalCarb.toFixed(1)}g</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">蛋白/脂肪/碳水</div>
+      </div>
+    </div>
+  `;
+
+  const meals = [
+    { key: 'breakfast', label: '早餐' },
+    { key: 'lunch', label: '午餐' },
+    { key: 'dinner', label: '晚餐' }
+  ];
+
+  meals.forEach(meal => {
+    const items = dayRecord[meal.key] || [];
+    html += `<div style="margin-bottom:16px;">`;
+    html += `<div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">${meal.label}
+      <button class="btn btn-sm" style="margin-left:8px;" onclick="openAddMealModal('${meal.key}')">+ 添加</button>
+    </div>`;
+    if (items.length === 0) {
+      html += `<div style="color:var(--text-tertiary);font-size:13px;">还没记录</div>`;
+    } else {
+      items.forEach((item, idx) => {
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <span style="font-size:13.5px;">${escapeHtml(item.name)}</span>
+              <span style="font-size:12px;color:var(--text-tertiary);margin-left:8px;">${item.grams}g · ${Math.round(item.kcal)}大卡</span>
+            </div>
+            <button class="btn-danger-text" onclick="removeMealItem('${meal.key}', ${idx})">×</button>
+          </div>
+        `;
+      });
+    }
+    html += '</div>';
+  });
+
+  // 减肥目标和身体数据
+  html += `
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:8px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;">减肥目标 & 身体数据
+        <button class="btn btn-sm" style="margin-left:8px;" onclick="editDietGoal()">设置目标</button>
+      </div>
+      <div id="dietGoalDisplay"></div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+  renderDietGoalDisplay();
+}
+
+function renderDietGoalDisplay() {
+  const date = currentDietDate();
+  const dayRecord = (dataStore.diet && dataStore.diet[date]) || {};
+  const display = document.getElementById('dietGoalDisplay');
+  if (!display) return;
+
+  if (!dayRecord.goal) {
+    display.innerHTML = '<div style="color:var(--text-tertiary);font-size:13px;">还没设置目标，点击右上角"设置目标"</div>';
+    return;
+  }
+  const g = dayRecord.goal;
+  display.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:13px;">
+      <div>目标体重：<b>${g.targetWeight}kg</b></div>
+      <div>每日热量目标：<b>${g.dailyKcal}大卡</b></div>
+      <div>当前体重：<b>${g.currentWeight || '-'}kg</b></div>
+    </div>
+  `;
+}
+
+function editDietGoal() {
+  const date = currentDietDate();
+  if (!dataStore.diet[date]) dataStore.diet[date] = { breakfast: [], lunch: [], dinner: [] };
+  const current = dataStore.diet[date].goal || {};
+
+  const tw = prompt('目标体重（kg）：', current.targetWeight || '');
+  if (!tw) return;
+  const ck = prompt('当前体重（kg）：', current.currentWeight || '');
+  const dk = prompt('每日摄入热量目标（大卡）：', current.dailyKcal || '1800');
+
+  dataStore.diet[date].goal = {
+    targetWeight: parseFloat(tw),
+    currentWeight: parseFloat(ck) || 0,
+    dailyKcal: parseFloat(dk) || 1800
+  };
+  saveData();
+  renderDiet();
+}
+
+let currentMealKey = 'breakfast';
+
+function openAddMealModal(mealKey) {
+  currentMealKey = mealKey;
+  // 用prompt简单实现，后续可改模态框
+  const foodNames = Object.keys(FOOD_DB).join('、');
+  const foodName = prompt(`选择食物（输入名称）：\n可选：${foodNames}\n\n自定义食物名也可以：`);
+  if (!foodName || !foodName.trim()) return;
+  const grams = prompt('重量（克）：', '100');
+  if (!grams || isNaN(grams)) return;
+
+  const g = parseFloat(grams);
+  const food = FOOD_DB[foodName.trim()];
+  let kcal, protein, fat, carb;
+  if (food) {
+    kcal = food.kcal * g / 100;
+    protein = food.protein * g / 100;
+    fat = food.fat * g / 100;
+    carb = food.carb * g / 100;
+  } else {
+    // 自定义食物按平均值估算
+    kcal = g * 1.5;
+    protein = g * 0.05;
+    fat = g * 0.03;
+    carb = g * 0.2;
+  }
+
+  const date = currentDietDate();
+  if (!dataStore.diet[date]) dataStore.diet[date] = { breakfast: [], lunch: [], dinner: [] };
+  if (!dataStore.diet[date][mealKey]) dataStore.diet[date][mealKey] = [];
+  dataStore.diet[date][mealKey].push({
+    name: foodName.trim(),
+    grams: g,
+    kcal: kcal,
+    protein: protein,
+    fat: fat,
+    carb: carb
+  });
+  saveData();
+  renderDiet();
+}
+
+function changeDietDate(delta) {
+  const d = new Date(currentDietDate());
+  d.setDate(d.getDate() + delta);
+  window._dietDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  renderDiet();
+}
+
+function removeMealItem(mealKey, idx) {
+  const date = currentDietDate();
+  if (dataStore.diet[date] && dataStore.diet[date][mealKey]) {
+    dataStore.diet[date][mealKey].splice(idx, 1);
+    saveData();
+    renderDiet();
+  }
+}
+
+// ===== 攒钱计划模块 =====
+function renderSavings() {
+  const container = document.querySelector('#view-savings .card');
+  if (!dataStore.savings) {
+    dataStore.savings = { goal: null, records: [] };
+  }
+  const savings = dataStore.savings;
+  const totalSaved = savings.records.reduce((sum, r) => sum + r.amount, 0);
+
+  let html = '';
+
+  if (!savings.goal) {
+    // 没有目标，显示创建引导
+    html += `
+      <div class="empty-state" style="padding:40px 20px;">
+        <div style="font-size:16px;margin-bottom:8px;">还没有存钱目标</div>
+        <div style="margin-bottom:16px;color:var(--text-secondary);">设定一个目标，开始攒钱吧</div>
+        <button class="btn btn-primary" onclick="createSavingsGoal()">+ 创建存钱目标</button>
+      </div>
+    `;
+  } else {
+    const goal = savings.goal;
+    const percent = goal.amount > 0 ? Math.min(100, (totalSaved / goal.amount * 100)).toFixed(1) : 0;
+    const remaining = Math.max(0, goal.amount - totalSaved);
+
+    html += `
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">存钱目标</div>
+            <div style="font-size:24px;font-weight:700;">¥${totalSaved.toLocaleString()} <span style="font-size:14px;color:var(--text-tertiary);font-weight:400;">/ ¥${goal.amount.toLocaleString()}</span></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:24px;font-weight:700;color:var(--accent);">${percent}%</div>
+            <div style="font-size:12px;color:var(--text-secondary);">已完成</div>
+          </div>
+        </div>
+        <div style="height:10px;background:var(--bg);border-radius:5px;overflow:hidden;margin-bottom:8px;">
+          <div style="height:100%;width:${percent}%;background:var(--accent-gradient);border-radius:5px;transition:width 0.3s;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);">
+          <span>还差 ¥${remaining.toLocaleString()}</span>
+          <span>目标日期：${goal.targetDate || '未设定'}</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:20px;">
+        <button class="btn btn-primary" onclick="addSavingsRecord()">+ 记一笔存钱</button>
+        <button class="btn" onclick="editSavingsGoal()">编辑目标</button>
+      </div>
+
+      <div class="card-title" style="margin-top:20px;">存钱记录</div>
+    `;
+
+    if (savings.records.length === 0) {
+      html += '<div class="empty-state">还没有存钱记录，记第一笔吧</div>';
+    } else {
+      const sorted = [...savings.records].sort((a, b) => b.date.localeCompare(a.date));
+      sorted.forEach(rec => {
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:13.5px;">+¥${rec.amount.toLocaleString()}</div>
+              <div style="font-size:12px;color:var(--text-tertiary);">${rec.date} ${rec.note ? '· ' + escapeHtml(rec.note) : ''}</div>
+            </div>
+            <button class="btn-danger-text" onclick="deleteSavingsRecord('${rec.id}')">×</button>
+          </div>
+        `;
+      });
+    }
+  }
+
+  container.innerHTML = html;
+}
+
+function createSavingsGoal() {
+  const amount = prompt('目标金额（元）：');
+  if (!amount || isNaN(amount)) return;
+  const targetDate = prompt('目标完成日期（YYYY-MM-DD）：', '2026-12-31');
+  dataStore.savings = {
+    goal: {
+      amount: parseFloat(amount),
+      targetDate: targetDate || '2026-12-31',
+      method: prompt('存钱方法（52周/365天/每月定额）：', '52周') || '52周'
+    },
+    records: (dataStore.savings && dataStore.savings.records) || []
+  };
+  saveData();
+  renderSavings();
+}
+
+function editSavingsGoal() {
+  if (!dataStore.savings || !dataStore.savings.goal) return;
+  const goal = dataStore.savings.goal;
+  const amount = prompt('目标金额（元）：', goal.amount);
+  if (amount && !isNaN(amount)) goal.amount = parseFloat(amount);
+  const date = prompt('目标完成日期（YYYY-MM-DD）：', goal.targetDate);
+  if (date) goal.targetDate = date;
+  saveData();
+  renderSavings();
+}
+
+function addSavingsRecord() {
+  const amount = prompt('本次存了多少钱（元）：');
+  if (!amount || isNaN(amount)) return;
+  const note = prompt('备注（可选）：') || '';
+  dataStore.savings.records.push({
+    id: 'save_' + Date.now(),
+    date: todayStr(),
+    amount: parseFloat(amount),
+    note: note
+  });
+  saveData();
+  renderSavings();
+  renderHome();
+}
+
+function deleteSavingsRecord(id) {
+  dataStore.savings.records = dataStore.savings.records.filter(r => r.id !== id);
+  saveData();
+  renderSavings();
+}
+
+// ===== 首页总览模块 =====
+function renderHome() {
+  const today = new Date();
+  const hours = today.getHours();
+  let greeting = '晚上好';
+  if (hours < 12) greeting = '早上好';
+  else if (hours < 18) greeting = '下午好';
+
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const dateStr = (today.getMonth()+1) + '月' + today.getDate() + '日 ' + weekDays[today.getDay()];
+
+  document.getElementById('homeGreeting').textContent = greeting + '，今天是 ' + dateStr;
+
+  const todos = dataStore.todos || [];
+  const undoneTodos = todos.filter(t => !t.done);
+  const consultations = dataStore.consultations || [];
+
+  // 计算即将跟进的咨询数
+  const todayDate = new Date();
+  todayDate.setHours(0,0,0,0);
+  const pendingConsult = consultations.filter(c => {
+    const d = new Date(c.followupDate);
+    d.setHours(0,0,0,0);
+    return (d - todayDate) / (1000*60*60*24) <= 1;
+  }).length;
+
+  document.getElementById('homeSubtitle').textContent = `今天有 ${undoneTodos.length} 项待办，${pendingConsult} 个咨询跟进提醒`;
+
+  // 渲染首页内容
+  const homeView = document.getElementById('view-home');
+  const cards = homeView.querySelectorAll('.card');
+
+  // 快速备忘卡片（第一张card）
+  const notes = dataStore.notes || [];
+  let noteHtml = `
+    <div class="card-title">快速备忘
+      <button class="btn btn-sm btn-primary" onclick="addNote()">+ 记一条</button>
+    </div>
+  `;
+  if (notes.length === 0) {
+    noteHtml += '<div style="color:var(--text-tertiary);font-size:13px;">随手记点什么...</div>';
+  } else {
+    notes.slice(-5).reverse().forEach(note => {
+      noteHtml += `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="flex:1;font-size:13.5px;">${escapeHtml(note.text)}</span>
+          <button class="btn-danger-text" onclick="deleteNote('${note.id}')">×</button>
+        </div>
+      `;
+    });
+  }
+  cards[0].innerHTML = noteHtml;
+
+  // 今日计划摘要卡片（第二张card）
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  const topTodos = [...undoneTodos].sort((a,b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3)).slice(0, 3);
+
+  let todoHtml = `
+    <div class="card-title">今日计划
+      <a href="#" onclick="switchView('today');return false;" style="font-size:12px;color:var(--accent);font-weight:400;">查看全部 →</a>
+    </div>
+  `;
+  if (topTodos.length === 0) {
+    todoHtml += '<div style="color:var(--text-tertiary);font-size:13px;">今天没有待办，休息一下</div>';
+  } else {
+    topTodos.forEach(todo => {
+      const tag = todo.priority === 'high' ? '<span class="tag tag-high">高</span>'
+        : todo.priority === 'medium' ? '<span class="tag tag-medium">中</span>'
+        : '<span class="tag tag-low">低</span>';
+      todoHtml += `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:13.5px;flex:1;">${escapeHtml(todo.text)}</span>
+          ${tag}
+        </div>
+      `;
+    });
+  }
+  cards[1].innerHTML = todoHtml;
+
+  // 各板块重点卡片（第三张card）
+  const media = dataStore.media || [];
+  const writingMedia = media.find(m => m.status === 'writing');
+  const projects = dataStore.projects || [];
+  const firstProject = projects[0];
+  const devTodo = firstProject && firstProject.todos ? firstProject.todos.find(t => !t.done && t.priority === 'high') : null;
+  const pendingConsultItem = consultations.find(c => {
+    const d = new Date(c.followupDate);
+    d.setHours(0,0,0,0);
+    return (d - todayDate) / (1000*60*60*24) <= 1;
+  });
+  const fitnessRecords = (dataStore.fitness && dataStore.fitness.records) || [];
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+  const weekRecords = fitnessRecords.filter(r => new Date(r.date) >= weekStart).length;
+
+  let summaryHtml = '<div class="card-title">各板块待办重点</div>';
+
+  summaryHtml += `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+    <div style="font-size:12px;color:var(--text-tertiary);">自媒体</div>
+    <div style="font-size:13.5px;">${writingMedia ? escapeHtml(writingMedia.title) : '没有写稿中的内容'}</div>
+  </div>`;
+
+  summaryHtml += `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+    <div style="font-size:12px;color:var(--text-tertiary);">开发工作</div>
+    <div style="font-size:13.5px;">${devTodo ? escapeHtml(devTodo.text) : '暂无高优先级待办'}</div>
+  </div>`;
+
+  summaryHtml += `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+    <div style="font-size:12px;color:var(--text-tertiary);">咨询工作</div>
+    <div style="font-size:13.5px;">${pendingConsultItem ? escapeHtml(pendingConsultItem.name) : '暂无待跟进事项'}</div>
+  </div>`;
+
+  summaryHtml += `<div style="padding:8px 0;">
+    <div style="font-size:12px;color:var(--text-tertiary);">健身计划</div>
+    <div style="font-size:13.5px;">本周已训练 ${weekRecords} 次</div>
+  </div>`;
+
+  cards[2].innerHTML = summaryHtml;
+}
+
+function addNote() {
+  const text = prompt('备忘内容：');
+  if (!text || !text.trim()) return;
+  if (!dataStore.notes) dataStore.notes = [];
+  dataStore.notes.push({
+    id: 'note_' + Date.now(),
+    text: text.trim(),
+    createdAt: new Date().toISOString()
+  });
+  saveData();
+  renderHome();
+}
+
+function deleteNote(id) {
+  dataStore.notes = (dataStore.notes || []).filter(n => n.id !== id);
+  saveData();
+  renderHome();
+}
+
+// ===== 数据与设置模块 =====
+function renderSettings() {
+  const container = document.querySelector('#view-settings .card');
+
+  const todoCount = (dataStore.todos || []).length;
+  const mediaCount = (dataStore.media || []).length;
+  const projectCount = (dataStore.projects || []).length;
+  const consultCount = (dataStore.consultations || []).length;
+  const fitnessCount = ((dataStore.fitness || {}).records || []).length;
+  const gameCount = (dataStore.games || []).length;
+  const noteCount = (dataStore.notes || []).length;
+
+  let html = `
+    <div class="card-title">数据统计</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;">${todoCount}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">任务</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;">${mediaCount}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">自媒体内容</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;">${projectCount}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">项目</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;">${consultCount}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">咨询事项</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;">${fitnessCount}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">训练记录</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;">${gameCount}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">游戏</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;">${noteCount}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">备忘</div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-weight:500;">导出备份</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">将所有数据下载为 JSON 文件保存</div>
+        </div>
+        <button class="btn" onclick="exportData()">导出备份</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-weight:500;">恢复数据</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">从备份 JSON 文件恢复全部数据</div>
+        </div>
+        <button class="btn" onclick="document.getElementById('importFileInput').click()">选择备份文件</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;">
+        <div>
+          <div style="font-weight:500;">数据存储位置</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">当前数据保存在你选择的本地文件夹中</div>
+        </div>
+        <button class="btn" onclick="selectDataFolder()">更改位置</button>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(dataStore, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '工作台备份_' + todayStr() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (confirm('导入将覆盖当前所有数据，确定继续吗？')) {
+        dataStore = imported;
+        saveData();
+        renderAll();
+        alert('数据恢复成功');
+      }
+    } catch (err) {
+      alert('文件格式错误，导入失败');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ===== IndexedDB：持久化存储文件夹句柄 =====
+let dbPromise = null;
+
+function openDB() {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open('workbenchDB', 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('handles')) {
+        db.createObjectStore('handles');
+      }
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e);
+  });
+  return dbPromise;
+}
+
+async function saveHandleToDB(handle) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'dataDir');
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+async function loadHandleFromDB() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readonly');
+    const req = tx.objectStore('handles').get('dataDir');
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+async function clearHandleFromDB() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').delete('dataDir');
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => reject(e);
+  });
+}
+
+// ===== 初始化 =====
+let savedHandleCache = null;
+
+async function init() {
+  // 直接从localStorage加载数据，无需选择文件夹
+  dataStore = getDefaultData();
+  await loadData();
+  document.getElementById('setupOverlay').style.display = 'none';
+  isReady = true;
+  renderAll();
+}
+
+function showFirstSetup() {
+  document.getElementById('setupTitle').textContent = '欢迎使用我的工作台';
+  document.getElementById('setupDesc').innerHTML = '首次使用需要选择一个文件夹来保存你的数据。<br>建议在桌面新建一个空文件夹（如"我的APP数据"），<br>选择它后所有数据都会自动保存在那里。';
+  document.getElementById('setupBtn').textContent = '选择数据文件夹';
+  document.getElementById('setupBtn').onclick = selectDataFolder;
+  document.getElementById('setupAltBtn').style.display = 'none';
+  document.getElementById('setupOverlay').style.display = 'flex';
+}
+
+async function showResumeSetup() {
+  document.getElementById('setupTitle').textContent = '继续使用我的工作台';
+  document.getElementById('setupDesc').innerHTML = '检测到你之前使用过的数据文件夹。<br>点击下方按钮即可继续，无需重新选择。';
+  document.getElementById('setupBtn').textContent = '继续使用上次的文件夹';
+  document.getElementById('setupBtn').onclick = resumeFromSavedHandle;
+  document.getElementById('setupAltBtn').style.display = 'inline-block';
+  document.getElementById('setupAltBtn').textContent = '换一个文件夹';
+  document.getElementById('setupAltBtn').onclick = () => {
+    clearHandleFromDB();
+    showFirstSetup();
+  };
+  document.getElementById('setupOverlay').style.display = 'flex';
+}
+
+async function resumeFromSavedHandle() {
+  if (!savedHandleCache) return;
+  dirHandle = savedHandleCache;
+  // 请求权限（用户手势中调用）
+  try {
+    const perm = await dirHandle.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      alert('没有获得文件夹访问权限，请重新选择。');
+      clearHandleFromDB();
+      showFirstSetup();
+      return;
+    }
+  } catch (e) {
+    console.warn('权限请求失败：', e);
+  }
+  dataStore = getDefaultData();
+  await loadData();
+  document.getElementById('setupOverlay').style.display = 'none';
+  isReady = true;
+  renderAll();
+}
+
+init();
+</script>
+
+</body>
+</html>
