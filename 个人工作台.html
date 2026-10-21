@@ -581,6 +581,13 @@ async function loadData() {
     // 文件不存在，使用默认数据
     dataStore = getDefaultData();
   }
+  // 数据迁移：补全新增字段，兼容旧数据
+  const defaults = getDefaultData();
+  if (!dataStore.fitness) dataStore.fitness = defaults.fitness;
+  if (!dataStore.fitness.exerciseLibrary) dataStore.fitness.exerciseLibrary = defaults.fitness.exerciseLibrary;
+  if (!dataStore.fitness.equipmentLibrary) dataStore.fitness.equipmentLibrary = defaults.fitness.equipmentLibrary;
+  if (!dataStore.fitness.weeklyPlan) dataStore.fitness.weeklyPlan = defaults.fitness.weeklyPlan;
+  if (!dataStore.fitness.records) dataStore.fitness.records = [];
 }
 
 // ===== 工具函数 =====
